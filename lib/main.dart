@@ -1,121 +1,362 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:neubrutalism_ui/neubrutalism_ui.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const NeuBrutalism());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class NeuBrutalism extends StatelessWidget {
+  const NeuBrutalism({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: ScreenWidget(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+class ScreenWidget extends StatelessWidget {
+  const ScreenWidget({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    final controller = TextEditingController();
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+      resizeToAvoidBottomInset: false,
+      extendBody: true,
+      // backgroundColor: const Color.fromARGB(255, 232, 210, 236),
+      body: SafeArea(
+          bottom: false,
+          minimum: const EdgeInsets.only(top: 30, left: 10, right: 10),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Hi, Deepraj",
+                      style: GoogleFonts.anton(
+                        textStyle: const TextStyle(
+                          fontSize: 30,
+                        ),
+                      ),
+                    ),
+                    NeuContainer(
+                        color: Colors.blueAccent,
+                        height: 50,
+                        width: 50,
+                        borderRadius: BorderRadius.circular(12),
+                        offset: const Offset(3, 3),
+                        child: const Icon(
+                          Icons.supervised_user_circle_outlined,
+                          size: 40,
+                        )),
+                  ],
+                ),
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    "Become a Better Dev Today",
+                    style: GoogleFonts.robotoCondensed(
+                        textStyle: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w300,
+                    )),
+                  ),
+                ),
+                const SizedBox(
+                  height: 30,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    NeuSearchBar(
+                      searchController: controller,
+                      keyboardType: TextInputType.name,
+                      searchBarColor: Colors.white,
+                      hintText: "What are you looking for",
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    NeuIconButton(
+                      buttonWidth: 60,
+                      buttonColor: const Color.fromARGB(255, 234, 203, 214),
+                      borderRadius: BorderRadius.circular(10),
+                      icon: const Icon(Icons.sort),
+                      //onPressed: () => print("hii"),
+                      enableAnimation: false,
+                    )
+                  ],
+                ),
+                const SizedBox(
+                  height: 30,
+                ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Course in Progress",
+                    style: GoogleFonts.robotoCondensed(
+                        textStyle: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    )),
+                  ),
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                NeuContainer(
+                  color: Colors.white,
+                  height: 150,
+                  width: double.maxFinite,
+                  borderRadius: BorderRadius.circular(12),
+                  borderWidth: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(15.0),
+                    child: Column(
+                      children: [
+                        const Spacer(),
+                        Align(
+                          alignment: Alignment.bottomRight,
+                          child: NeuTextButton(
+                            borderRadius: BorderRadius.circular(12),
+                            buttonColor:
+                                const Color.fromARGB(255, 236, 199, 211),
+                            buttonHeight: 60,
+                            buttonWidth: 100,
+                            enableAnimation: true,
+                            onPressed: () => debugPrint("hello"),
+                            text: Text(
+                              "Start",
+                              style: GoogleFonts.robotoCondensed(
+                                  textStyle: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                              )),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Popular Course",
+                    style: GoogleFonts.robotoCondensed(
+                        textStyle: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    )),
+                  ),
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      NewWidget(
+                        image: Image.network(
+                            'https://images.unsplash.com/photo-1533518463841-d62e1fc91373?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2940&q=80'),
+                        text: 'Dexter Lab 101',
+                      ),
+                      const SizedBox(
+                        width: 15,
+                      ),
+                      NewWidget(
+                        image: Image.network(
+                            'https://images.unsplash.com/photo-1640499900704-b00dd6a1103a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2942&q=80'),
+                        text: 'Cosmos',
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Top Mentors",
+                    style: GoogleFonts.robotoCondensed(
+                        textStyle: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    )),
+                  ),
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                const SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      MentorsCard(),
+                      MentorsCard(),
+                      MentorsCard(),
+                      MentorsCard(),
+                      MentorsCard(),
+                      MentorsCard(),
+                      MentorsCard(),
+                    ],
+                  ),
+                )
+              ],
+            ),
+          )),
+    );
+  }
+}
+
+class MentorsCard extends StatelessWidget {
+  const MentorsCard({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return NeuContainer(
+      shadowColor: Colors.transparent,
+      color: Colors.white,
+      height: 80,
+      width: 250,
+      borderRadius: BorderRadius.circular(10),
+      child: Row(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: NeuCard(
+              borderRadius: BorderRadius.circular(50),
+              shadowColor: Colors.transparent,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(50),
+                child: Image.network(
+                  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2864&q=80',
+                ),
+              ),
+            ),
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Text(
+                "John Doe",
+                textAlign: TextAlign.start,
+                style: GoogleFonts.robotoCondensed(
+                  textStyle: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Text(
+                "Full-Stack Developer",
+                textAlign: TextAlign.start,
+                style: GoogleFonts.robotoCondensed(
+                  textStyle: const TextStyle(
+                    fontSize: 20,
+                  ),
+                ),
+              ),
+            ],
+          )
+        ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+    );
+  }
+}
+
+class NewWidget extends StatelessWidget {
+  const NewWidget({
+    super.key,
+    required this.image,
+    required this.text,
+  });
+  final Image image;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: NeuContainer(
+        height: 260,
+        width: 230,
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(13),
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
           children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+            image,
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: Text(
+                  text,
+                  style: GoogleFonts.robotoCondensed(
+                    textStyle: const TextStyle(
+                      fontSize: 20,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 5.0),
+              child: Row(
+                children: [
+                  const Icon(Icons.access_time_outlined),
+                  Text(
+                    "30 hrs",
+                    style: GoogleFonts.robotoCondensed(
+                        textStyle: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    )),
+                  ),
+                  const SizedBox(
+                    width: 30,
+                  ),
+                  const Icon(Icons.star_border),
+                  Text(
+                    "4.5",
+                    style: GoogleFonts.robotoCondensed(
+                        textStyle: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    )),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 12.0),
+              child: Align(
+                alignment: Alignment.bottomRight,
+                child: NeuIconButton(
+                    buttonHeight: 30,
+                    buttonWidth: 30,
+                    buttonColor: const Color.fromARGB(255, 248, 250, 194),
+                    icon: const Icon(Icons.arrow_forward),
+                    enableAnimation: true,
+                    borderRadius: BorderRadius.circular(20)),
+              ),
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ),
     );
   }
