@@ -59,6 +59,7 @@ class ScaffoldWithNav extends StatelessWidget {
                 // Native Liquid Glass FAB circle
                 CNButton.icon(
                   size: 60,
+                  
                   icon: const CNSymbol('plus'),
                   onPressed: () => context.go('/quotation'),
                 ),

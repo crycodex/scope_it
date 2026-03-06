@@ -6,6 +6,7 @@ import '../../../database/database_helper.dart';
 import '../../../models/project.dart';
 import '../widgets/empty_state_widget.dart';
 import '../widgets/project_card.dart';
+import 'package:cupertino_native/cupertino_native.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -100,11 +101,10 @@ class _HomeViewState extends State<HomeView> {
                   fit: BoxFit.cover,
                 ),
                 const Spacer(),
-                _NeuIconBtn(
-                  icon: Icons.settings_outlined,
-                  onTap: () => context.go('/settings'),
-                  isDark: isDark,
-                  borderColor: borderColor,
+                //setings
+                CNButton.icon(
+                  icon: CNSymbol('gearshape'),
+                  onPressed: () => context.go('/settings'),
                 ),
               ],
             ),
@@ -185,7 +185,7 @@ class _HomeViewState extends State<HomeView> {
   }
 }
 
-class _NeuIconBtn extends StatelessWidget {
+class _NeuIconBtn extends StatefulWidget {
   const _NeuIconBtn({
     required this.icon,
     required this.onTap,
@@ -199,25 +199,33 @@ class _NeuIconBtn extends StatelessWidget {
   final Color borderColor;
 
   @override
+  State<_NeuIconBtn> createState() => _NeuIconBtnState();
+}
+
+class _NeuIconBtnState extends State<_NeuIconBtn> {
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Container(
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: isDark ? AppColors.grey800 : AppColors.grey100,
+          color: widget.isDark ? AppColors.grey800 : AppColors.grey100,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: borderColor, width: AppColors.borderWidth),
+          border: Border.all(
+            color: widget.borderColor,
+            width: AppColors.borderWidth,
+          ),
           boxShadow: [
             BoxShadow(
-              color: borderColor,
+              color: widget.borderColor,
               offset: const Offset(3, 3),
               blurRadius: 0,
             ),
           ],
         ),
-        child: Icon(icon, size: 20, color: borderColor),
+        child: Icon(widget.icon, size: 20, color: widget.borderColor),
       ),
     );
   }
