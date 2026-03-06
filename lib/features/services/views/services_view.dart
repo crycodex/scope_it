@@ -5,7 +5,6 @@ import '../../../database/database_helper.dart';
 import '../../../models/category.dart';
 import '../../../models/service_item.dart';
 import '../../../shared/widgets/neu_box.dart';
-import '../../../shared/widgets/scaffold_with_nav.dart';
 
 class ServicesView extends StatefulWidget {
   const ServicesView({super.key});
@@ -119,75 +118,71 @@ class _ServicesViewState extends State<ServicesView> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? AppColors.white : AppColors.black;
-    final bgColor = isDark ? AppColors.grey900 : AppColors.white;
     final borderColor = isDark ? AppColors.white : AppColors.black;
 
-    return ScaffoldWithNav(
-      currentIndex: 1,
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Container(
-              color: bgColor,
-              padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Servicios',
-                      style: GoogleFonts.spaceGrotesk(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        color: textColor,
-                      ),
+    return SafeArea(
+      bottom: false,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Servicios',
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                      color: textColor,
                     ),
                   ),
-                  _NeuBtn(
-                    label: '+ Categoría',
-                    onTap: _addCategory,
-                    borderColor: borderColor,
-                    isDark: isDark,
-                  ),
-                ],
-              ),
+                ),
+                _NeuBtn(
+                  label: '+ Categoría',
+                  onTap: _addCategory,
+                  borderColor: borderColor,
+                  isDark: isDark,
+                ),
+              ],
             ),
-            Container(height: AppColors.borderWidth, color: borderColor),
-            Expanded(
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _categories.isEmpty
-                      ? Center(
-                          child: Text(
-                            'Sin categorías. Agrega una.',
-                            style: TextStyle(color: textColor.withAlpha(160)),
-                          ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
-                          itemCount: _categories.length,
-                          itemBuilder: (_, i) {
-                            final cat = _categories[i];
-                            final services =
-                                _servicesByCategory[cat.id] ?? [];
-                            return _CategorySection(
-                              category: cat,
-                              services: services,
-                              onEditCat: () => _editCategory(cat),
-                              onDeleteCat: () => _deleteCategory(cat),
-                              onAddService: () => _addService(cat),
-                              onEditService: _editService,
-                              onDeleteService: _deleteService,
-                              isDark: isDark,
-                              borderColor: borderColor,
-                              textColor: textColor,
-                            );
-                          },
+          ),
+          Container(height: AppColors.borderWidth, color: borderColor),
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _categories.isEmpty
+                    ? Center(
+                        child: Text(
+                          'Sin categorías. Agrega una.',
+                          style: TextStyle(color: textColor.withAlpha(160)),
                         ),
-            ),
-          ],
-        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+                        itemCount: _categories.length,
+                        itemBuilder: (_, i) {
+                          final cat = _categories[i];
+                          final services =
+                              _servicesByCategory[cat.id] ?? [];
+                          return _CategorySection(
+                            category: cat,
+                            services: services,
+                            onEditCat: () => _editCategory(cat),
+                            onDeleteCat: () => _deleteCategory(cat),
+                            onAddService: () => _addService(cat),
+                            onEditService: _editService,
+                            onDeleteService: _deleteService,
+                            isDark: isDark,
+                            borderColor: borderColor,
+                            textColor: textColor,
+                          );
+                        },
+                      ),
+          ),
+        ],
       ),
     );
   }

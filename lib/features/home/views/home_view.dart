@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../app/theme.dart';
 import '../../../database/database_helper.dart';
 import '../../../models/project.dart';
-import '../../../shared/widgets/scaffold_with_nav.dart';
 import '../widgets/empty_state_widget.dart';
 import '../widgets/project_card.dart';
 
@@ -50,10 +49,12 @@ class _HomeViewState extends State<HomeView> {
       _filtered = q.isEmpty
           ? _projects
           : _projects
-              .where((p) =>
-                  p.name.toLowerCase().contains(q) ||
-                  p.clientName.toLowerCase().contains(q))
-              .toList();
+                .where(
+                  (p) =>
+                      p.name.toLowerCase().contains(q) ||
+                      p.clientName.toLowerCase().contains(q),
+                )
+                .toList();
     });
   }
 
@@ -82,117 +83,103 @@ class _HomeViewState extends State<HomeView> {
     final bgColor = isDark ? AppColors.grey900 : AppColors.white;
     final borderColor = isDark ? AppColors.white : AppColors.black;
 
-    return ScaffoldWithNav(
-      currentIndex: 0,
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── TOP APP BAR ─────────────────────────────────────
-            Container(
-              color: bgColor,
-              padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
-              child: Row(
-                children: [
-                  // Logo
-                  Expanded(
-                    child: Image.asset(
-                      'assets/logo/icon.png',
-                      height: 52,
-                      alignment: Alignment.centerLeft,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                  // Settings button
-                  _NeuIconBtn(
-                    icon: Icons.settings_outlined,
-                    onTap: () => context.go('/settings'),
-                    isDark: isDark,
-                    borderColor: borderColor,
-                  ),
-                ],
-              ),
+    return SafeArea(
+      bottom: false,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── TOP APP BAR ──────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 16, 0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/logo/icon.png',
+                  height: 150,
+                  fit: BoxFit.cover,
+                ),
+                const Spacer(),
+                _NeuIconBtn(
+                  icon: Icons.settings_outlined,
+                  onTap: () => context.go('/settings'),
+                  isDark: isDark,
+                  borderColor: borderColor,
+                ),
+              ],
             ),
-            // ── DIVIDER ─────────────────────────────────────────
-            Container(
-              height: AppColors.borderWidth,
-              color: borderColor,
-            ),
-            // ── CONTENT ─────────────────────────────────────────
-            Expanded(
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : RefreshIndicator(
-                      onRefresh: _loadProjects,
-                      child: CustomScrollView(
-                        slivers: [
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Proyectos',
-                                    style: GoogleFonts.spaceGrotesk(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.w800,
-                                      color: textColor,
-                                    ),
+          ),
+          // ── CONTENT ──────────────────────────────────────────
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : RefreshIndicator(
+                    onRefresh: _loadProjects,
+                    child: CustomScrollView(
+                      slivers: [
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Proyectos',
+                                  style: GoogleFonts.spaceGrotesk(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w800,
+                                    color: textColor,
                                   ),
-                                  const SizedBox(height: 16),
-                                  // Search bar
-                                  _NeuSearchBar(
-                                    controller: _searchCtrl,
-                                    isDark: isDark,
-                                    borderColor: borderColor,
-                                    bgColor: bgColor,
-                                  ),
-                                  const SizedBox(height: 20),
-                                ],
-                              ),
+                                ),
+                                const SizedBox(height: 16),
+                                _NeuSearchBar(
+                                  controller: _searchCtrl,
+                                  isDark: isDark,
+                                  borderColor: borderColor,
+                                  bgColor: bgColor,
+                                ),
+                                const SizedBox(height: 20),
+                              ],
                             ),
                           ),
-                          if (_projects.isEmpty)
-                            const SliverFillRemaining(
-                              child: EmptyStateWidget(),
-                            )
-                          else if (_filtered.isEmpty)
-                            SliverFillRemaining(
-                              child: Center(
-                                child: Text(
-                                  'Sin resultados',
-                                  style: TextStyle(
-                                    color: textColor.withAlpha(160),
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
-                            )
-                          else
-                            SliverPadding(
-                              padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
-                              sliver: SliverList(
-                                delegate: SliverChildBuilderDelegate(
-                                  (context, index) {
-                                    final project = _filtered[index];
-                                    return ProjectCard(
-                                      project: project,
-                                      onDelete: () => _deleteProject(project),
-                                      onStatusChange: (s) =>
-                                          _changeStatus(project, s),
-                                    );
-                                  },
-                                  childCount: _filtered.length,
+                        ),
+                        if (_projects.isEmpty)
+                          const SliverFillRemaining(child: EmptyStateWidget())
+                        else if (_filtered.isEmpty)
+                          SliverFillRemaining(
+                            child: Center(
+                              child: Text(
+                                'Sin resultados',
+                                style: TextStyle(
+                                  color: textColor.withAlpha(160),
+                                  fontSize: 16,
                                 ),
                               ),
                             ),
-                        ],
-                      ),
+                          )
+                        else
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
+                            sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate((
+                                context,
+                                index,
+                              ) {
+                                final project = _filtered[index];
+                                return ProjectCard(
+                                  project: project,
+                                  onDelete: () => _deleteProject(project),
+                                  onStatusChange: (s) =>
+                                      _changeStatus(project, s),
+                                );
+                              }, childCount: _filtered.length),
+                            ),
+                          ),
+                      ],
                     ),
-            ),
-          ],
-        ),
+                  ),
+          ),
+        ],
       ),
     );
   }
