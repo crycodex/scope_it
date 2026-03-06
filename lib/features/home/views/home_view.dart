@@ -92,20 +92,45 @@ class _HomeViewState extends State<HomeView> {
           // ── TOP APP BAR ──────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 16, 0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Image.asset(
-                  'assets/logo/icon.png',
-                  height: 150,
-                  fit: BoxFit.cover,
+                // Logo + Settings
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/logo/icon.png',
+                      height: 150,
+                      fit: BoxFit.cover,
+                    ),
+                    const Spacer(),
+                    CNButton.icon(
+                      icon: const CNSymbol('gearshape'),
+                      onPressed: () => context.go('/settings'),
+                    ),
+                  ],
                 ),
-                const Spacer(),
-                //setings
-                CNButton.icon(
-                  icon: CNSymbol('gearshape'),
-                  onPressed: () => context.go('/settings'),
-                ),
+                // Título + buscador (solo si hay proyectos)
+                if (!_loading && _projects.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    'Proyectos',
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w800,
+                      color: textColor,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _NeuSearchBar(
+                    controller: _searchCtrl,
+                    isDark: isDark,
+                    borderColor: borderColor,
+                    bgColor: bgColor,
+                  ),
+                  const SizedBox(height: 4),
+                ],
               ],
             ),
           ),
@@ -113,71 +138,35 @@ class _HomeViewState extends State<HomeView> {
           Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
-                : RefreshIndicator(
-                    onRefresh: _loadProjects,
-                    child: CustomScrollView(
-                      slivers: [
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Proyectos',
-                                  style: GoogleFonts.spaceGrotesk(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.w800,
-                                    color: textColor,
+                : _projects.isEmpty
+                    ? const EmptyStateWidget()
+                    : RefreshIndicator(
+                        onRefresh: _loadProjects,
+                        child: _filtered.isEmpty
+                            ? Center(
+                                child: Text(
+                                  'Sin resultados',
+                                  style: TextStyle(
+                                    color: textColor.withAlpha(160),
+                                    fontSize: 16,
                                   ),
                                 ),
-                                const SizedBox(height: 16),
-                                _NeuSearchBar(
-                                  controller: _searchCtrl,
-                                  isDark: isDark,
-                                  borderColor: borderColor,
-                                  bgColor: bgColor,
-                                ),
-                                const SizedBox(height: 20),
-                              ],
-                            ),
-                          ),
-                        ),
-                        if (_projects.isEmpty)
-                          const SliverFillRemaining(child: EmptyStateWidget())
-                        else if (_filtered.isEmpty)
-                          SliverFillRemaining(
-                            child: Center(
-                              child: Text(
-                                'Sin resultados',
-                                style: TextStyle(
-                                  color: textColor.withAlpha(160),
-                                  fontSize: 16,
-                                ),
+                              )
+                            : ListView.builder(
+                                padding: const EdgeInsets.fromLTRB(
+                                    20, 12, 20, 120),
+                                itemCount: _filtered.length,
+                                itemBuilder: (context, index) {
+                                  final project = _filtered[index];
+                                  return ProjectCard(
+                                    project: project,
+                                    onDelete: () => _deleteProject(project),
+                                    onStatusChange: (s) =>
+                                        _changeStatus(project, s),
+                                  );
+                                },
                               ),
-                            ),
-                          )
-                        else
-                          SliverPadding(
-                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
-                            sliver: SliverList(
-                              delegate: SliverChildBuilderDelegate((
-                                context,
-                                index,
-                              ) {
-                                final project = _filtered[index];
-                                return ProjectCard(
-                                  project: project,
-                                  onDelete: () => _deleteProject(project),
-                                  onStatusChange: (s) =>
-                                      _changeStatus(project, s),
-                                );
-                              }, childCount: _filtered.length),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
+                      ),
           ),
         ],
       ),
