@@ -16,6 +16,10 @@ dependencies:
   cupertino_icons: ^1.0.8
   neubrutalism_ui: ^2.0.2
   google_fonts: ^6.2.0
+  go_router: ^14.0.0
+  sqflite: ^2.4.2
+  path: ^1.9.0
+  provider: ^6.1.2
 
 dev_dependencies:
   flutter_test:
@@ -61,11 +65,10 @@ flutter_native_splash:
 flutter:
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
-assets:
-  - assets/logo/
-  - assets/logo/icon.png
-  - assets/logo/icon_remove.png
+  assets:
+    - assets/logo/
+    - assets/logo/icon.png
+    - assets/logo/icon_remove.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
