@@ -1,4 +1,4 @@
-package com.example.scope_it
+package com.crycode.scopeit
 
 import io.flutter.embedding.android.FlutterActivity
 
