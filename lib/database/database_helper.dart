@@ -22,12 +22,31 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
+      onUpgrade: _upgradeDB,
     );
   }
 
+  Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS settings (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL
+        )
+      ''');
+    }
+  }
+
   Future<void> _createDB(Database db, int version) async {
+    await db.execute('''
+      CREATE TABLE settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      )
+    ''');
+
     await db.execute('''
       CREATE TABLE categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -118,6 +137,23 @@ class DatabaseHelper {
         'unit': svc['unit'],
       });
     }
+  }
+
+  // ── SETTINGS ──────────────────────────────────────────────────────
+  Future<String?> getSetting(String key) async {
+    final db = await database;
+    final rows = await db.query('settings', where: 'key = ?', whereArgs: [key]);
+    if (rows.isEmpty) return null;
+    return rows.first['value'] as String;
+  }
+
+  Future<void> setSetting(String key, String value) async {
+    final db = await database;
+    await db.insert(
+      'settings',
+      {'key': key, 'value': value},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   // ── CATEGORIES ────────────────────────────────────────────────────

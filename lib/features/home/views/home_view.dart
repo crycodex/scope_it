@@ -100,8 +100,8 @@ class _HomeViewState extends State<HomeView> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Image.asset(
-                      'assets/logo/icon.png',
-                      height: 150,
+                      'assets/logo/icon_remove.png',
+                      height: 100,
                       fit: BoxFit.cover,
                     ),
                     const Spacer(),
@@ -139,34 +139,33 @@ class _HomeViewState extends State<HomeView> {
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
                 : _projects.isEmpty
-                    ? const EmptyStateWidget()
-                    : RefreshIndicator(
-                        onRefresh: _loadProjects,
-                        child: _filtered.isEmpty
-                            ? Center(
-                                child: Text(
-                                  'Sin resultados',
-                                  style: TextStyle(
-                                    color: textColor.withAlpha(160),
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              )
-                            : ListView.builder(
-                                padding: const EdgeInsets.fromLTRB(
-                                    20, 12, 20, 120),
-                                itemCount: _filtered.length,
-                                itemBuilder: (context, index) {
-                                  final project = _filtered[index];
-                                  return ProjectCard(
-                                    project: project,
-                                    onDelete: () => _deleteProject(project),
-                                    onStatusChange: (s) =>
-                                        _changeStatus(project, s),
-                                  );
-                                },
+                ? const EmptyStateWidget()
+                : RefreshIndicator(
+                    onRefresh: _loadProjects,
+                    child: _filtered.isEmpty
+                        ? Center(
+                            child: Text(
+                              'Sin resultados',
+                              style: TextStyle(
+                                color: textColor.withAlpha(160),
+                                fontSize: 16,
                               ),
-                      ),
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
+                            itemCount: _filtered.length,
+                            itemBuilder: (context, index) {
+                              final project = _filtered[index];
+                              return ProjectCard(
+                                project: project,
+                                onDelete: () => _deleteProject(project),
+                                onStatusChange: (s) =>
+                                    _changeStatus(project, s),
+                              );
+                            },
+                          ),
+                  ),
           ),
         ],
       ),

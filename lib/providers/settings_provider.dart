@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../database/database_helper.dart';
 
 enum CompanySize {
   startup,
@@ -41,7 +42,10 @@ extension CompanySizeExt on CompanySize {
 }
 
 class SettingsProvider extends ChangeNotifier {
-  CompanySize _companySize = CompanySize.small;
+  SettingsProvider({CompanySize initial = CompanySize.small})
+      : _companySize = initial;
+
+  CompanySize _companySize;
 
   CompanySize get companySize => _companySize;
 
@@ -49,6 +53,7 @@ class SettingsProvider extends ChangeNotifier {
 
   void setCompanySize(CompanySize size) {
     _companySize = size;
+    DatabaseHelper.instance.setSetting('company_size', size.index.toString());
     notifyListeners();
   }
 }
