@@ -6,6 +6,7 @@ import '../../../app/theme.dart';
 import '../../../database/database_helper.dart';
 import '../../../models/project.dart';
 import '../../../models/quotation_config.dart';
+import '../../../services/pricing_service.dart';
 import '../../../shared/widgets/neu_box.dart';
 
 // Curated icon set for projects
@@ -131,26 +132,32 @@ class _NewQuotationViewState extends State<NewQuotationView> {
   }
 
   // ── Calculations ───────────────────────────────────────────────────
+  final _px = PricingService.instance;
+
   double get _basePrice {
     if (_serviceType == ServiceType.custom) return _customPrice ?? 0;
-    return _serviceType?.basePrice ?? 0;
+    if (_serviceType == null) return 0;
+    return _px.serviceBasePrice(_serviceType!);
   }
 
   double get _baseProject {
     if (_serviceType == ServiceType.app) {
-      return _basePrice * _mobilePlatform.multiplier;
+      return _basePrice * _px.mobilePlatformMultiplier(_mobilePlatform);
     }
-    return _basePrice * _platformTier.multiplier;
+    return _basePrice * _px.platformMultiplier(_platformTier);
   }
 
-  double get _featuresTotal => _features.fold(0.0, (s, f) => s + f.price);
-  double get _extrasTotal => _extras.fold(0.0, (s, e) => s + e.price);
+  double get _featuresTotal =>
+      _features.fold(0.0, (s, f) => s + _px.featurePrice(f));
+  double get _extrasTotal =>
+      _extras.fold(0.0, (s, e) => s + _px.extraPrice(e));
   double get _developmentTotal => _baseProject + _featuresTotal + _extrasTotal;
 
   double get _monthlyRecurring {
-    final hosting =
-        _serviceType == ServiceType.app ? 0.0 : _platformTier.monthlyHosting;
-    return hosting + _userTier.monthlyPrice + _supportPlan.monthlyPrice;
+    final hosting = _serviceType == ServiceType.app
+        ? 0.0
+        : _px.platformHosting(_platformTier);
+    return hosting + _userTier.monthlyPrice + _px.supportMonthly(_supportPlan);
   }
 
   double get _monthlyWithDiscount => _monthlyRecurring * _billingCycle.discount;
