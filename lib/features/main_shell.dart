@@ -38,8 +38,6 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-
     return Scaffold(
       extendBody: true,
       body: Stack(
@@ -59,7 +57,8 @@ class _MainShellState extends State<MainShell> {
           Positioned(
             left: 0,
             right: 16,
-            bottom: bottomPadding + 12,
+            bottom: 12,
+
             child: LayoutBuilder(
               builder: (context, constraints) {
                 // Deja 52px para el botón + y 12px de gap
