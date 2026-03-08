@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../features/main_shell.dart';
 import '../features/quotation/views/new_quotation_view.dart';
+import '../features/quotation/views/project_detail_view.dart';
 import '../features/settings/views/settings_view.dart';
 
 final appRouter = GoRouter(
@@ -20,6 +21,16 @@ final appRouter = GoRouter(
       pageBuilder: (context, state) => _slideRight(
         state: state,
         child: const NewQuotationView(),
+      ),
+    ),
+    GoRoute(
+      path: '/project/:id',
+      name: 'projectDetail',
+      pageBuilder: (context, state) => _slideRight(
+        state: state,
+        child: ProjectDetailView(
+          projectId: int.parse(state.pathParameters['id']!),
+        ),
       ),
     ),
     GoRoute(

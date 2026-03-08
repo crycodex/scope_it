@@ -22,7 +22,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -36,6 +36,10 @@ class DatabaseHelper {
           value TEXT NOT NULL
         )
       ''');
+    }
+    if (oldVersion < 3) {
+      await db.execute(
+          'ALTER TABLE projects ADD COLUMN configJson TEXT');
     }
   }
 
@@ -77,7 +81,8 @@ class DatabaseHelper {
         totalEstimate REAL NOT NULL,
         multiplierUsed REAL NOT NULL DEFAULT 1.0,
         status INTEGER NOT NULL DEFAULT 0,
-        createdAt TEXT NOT NULL
+        createdAt TEXT NOT NULL,
+        configJson TEXT
       )
     ''');
 
@@ -224,6 +229,15 @@ class DatabaseHelper {
       projects[i] = projects[i].copyWith(lines: lines);
     }
     return projects;
+  }
+
+  Future<Project?> getProject(int id) async {
+    final db = await database;
+    final maps = await db.query('projects', where: 'id = ?', whereArgs: [id]);
+    if (maps.isEmpty) return null;
+    final project = Project.fromMap(maps.first);
+    final lines = await getProjectLines(id);
+    return project.copyWith(lines: lines);
   }
 
   Future<int> insertProject(Project project) async {

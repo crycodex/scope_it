@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'quotation_config.dart';
+
 enum ProjectStatus { pending, inProgress, completed, cancelled }
 
 extension ProjectStatusExt on ProjectStatus {
@@ -38,6 +41,7 @@ class Project {
   final ProjectStatus status;
   final DateTime createdAt;
   final List<ProjectLine> lines;
+  final String? configJson;
 
   const Project({
     this.id,
@@ -49,7 +53,18 @@ class Project {
     this.status = ProjectStatus.pending,
     required this.createdAt,
     this.lines = const [],
+    this.configJson,
   });
+
+  QuotationConfig? get quotationConfig {
+    if (configJson == null) return null;
+    try {
+      return QuotationConfig.fromJson(
+          json.decode(configJson!) as Map<String, dynamic>);
+    } catch (_) {
+      return null;
+    }
+  }
 
   Project copyWith({
     int? id,
@@ -61,6 +76,7 @@ class Project {
     ProjectStatus? status,
     DateTime? createdAt,
     List<ProjectLine>? lines,
+    String? configJson,
   }) {
     return Project(
       id: id ?? this.id,
@@ -72,6 +88,7 @@ class Project {
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       lines: lines ?? this.lines,
+      configJson: configJson ?? this.configJson,
     );
   }
 
@@ -85,6 +102,7 @@ class Project {
       'multiplierUsed': multiplierUsed,
       'status': status.index,
       'createdAt': createdAt.toIso8601String(),
+      'configJson': configJson,
     };
   }
 
@@ -99,6 +117,7 @@ class Project {
       status: ProjectStatus.values[map['status'] as int? ?? 0],
       createdAt: DateTime.parse(map['createdAt'] as String),
       lines: const [],
+      configJson: map['configJson'] as String?,
     );
   }
 }
