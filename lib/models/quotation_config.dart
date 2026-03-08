@@ -56,13 +56,13 @@ enum ServiceType {
   double get basePrice {
     switch (this) {
       case ServiceType.web:
-        return 2500;
+        return 250;
       case ServiceType.app:
-        return 4000;
+        return 400;
       case ServiceType.backendApi:
-        return 2000;
+        return 200;
       case ServiceType.automationAi:
-        return 5000;
+        return 500;
       case ServiceType.custom:
         return 0;
     }
@@ -283,17 +283,17 @@ enum Feature {
   double get price {
     switch (this) {
       case Feature.auth:
-        return 300;
-      case Feature.roles:
-        return 250;
-      case Feature.payments:
-        return 500;
-      case Feature.analytics:
-        return 200;
-      case Feature.emailNotifications:
         return 150;
+      case Feature.roles:
+        return 125;
+      case Feature.payments:
+        return 250;
+      case Feature.analytics:
+        return 100;
+      case Feature.emailNotifications:
+        return 75;
       case Feature.multiLanguage:
-        return 350;
+        return 175;
     }
   }
 
@@ -417,19 +417,19 @@ enum Extra {
   double get price {
     switch (this) {
       case Extra.realtimeChat:
-        return 800;
-      case Extra.pushNotifications:
         return 400;
+      case Extra.pushNotifications:
+        return 200;
       case Extra.adminDashboard:
-        return 600;
+        return 300;
       case Extra.uxDesign:
-        return 1200;
+        return 300;
       case Extra.dataMigration:
-        return 500;
+        return 250;
       case Extra.thirdPartyIntegration:
-        return 450;
+        return 225;
       case Extra.testingQa:
-        return 350;
+        return 175;
     }
   }
 
@@ -537,17 +537,17 @@ class QuotationConfig {
   });
 
   Map<String, dynamic> toJson() => {
-        'serviceType': serviceType,
-        if (customServiceName != null) 'customServiceName': customServiceName,
-        if (customBasePrice != null) 'customBasePrice': customBasePrice,
-        'platformTier': platformTier,
-        'billingCycle': billingCycle,
-        if (mobilePlatform != null) 'mobilePlatform': mobilePlatform,
-        'features': features,
-        'userTier': userTier,
-        'extras': extras,
-        'supportPlan': supportPlan,
-      };
+    'serviceType': serviceType,
+    if (customServiceName != null) 'customServiceName': customServiceName,
+    if (customBasePrice != null) 'customBasePrice': customBasePrice,
+    'platformTier': platformTier,
+    'billingCycle': billingCycle,
+    if (mobilePlatform != null) 'mobilePlatform': mobilePlatform,
+    'features': features,
+    'userTier': userTier,
+    'extras': extras,
+    'supportPlan': supportPlan,
+  };
 
   factory QuotationConfig.fromJson(Map<String, dynamic> json) {
     return QuotationConfig(
@@ -568,35 +568,42 @@ class QuotationConfig {
   ServiceType? get serviceTypeEnum =>
       ServiceType.values.where((e) => e.name == serviceType).firstOrNull;
 
-  PlatformTier get platformTierEnum =>
-      PlatformTier.values.firstWhere((e) => e.name == platformTier,
-          orElse: () => PlatformTier.basic);
+  PlatformTier get platformTierEnum => PlatformTier.values.firstWhere(
+    (e) => e.name == platformTier,
+    orElse: () => PlatformTier.basic,
+  );
 
-  BillingCycle get billingCycleEnum =>
-      BillingCycle.values.firstWhere((e) => e.name == billingCycle,
-          orElse: () => BillingCycle.monthly);
+  BillingCycle get billingCycleEnum => BillingCycle.values.firstWhere(
+    (e) => e.name == billingCycle,
+    orElse: () => BillingCycle.monthly,
+  );
 
   MobilePlatform? get mobilePlatformEnum => mobilePlatform == null
       ? null
-      : MobilePlatform.values.firstWhere((e) => e.name == mobilePlatform,
-          orElse: () => MobilePlatform.playStore);
+      : MobilePlatform.values.firstWhere(
+          (e) => e.name == mobilePlatform,
+          orElse: () => MobilePlatform.playStore,
+        );
 
   List<Feature> get featureEnums => features
       .map((f) => Feature.values.where((e) => e.name == f).firstOrNull)
       .whereType<Feature>()
       .toList();
 
-  UserTier get userTierEnum => UserTier.values
-      .firstWhere((e) => e.name == userTier, orElse: () => UserTier.tier0);
+  UserTier get userTierEnum => UserTier.values.firstWhere(
+    (e) => e.name == userTier,
+    orElse: () => UserTier.tier0,
+  );
 
   List<Extra> get extraEnums => extras
       .map((x) => Extra.values.where((e) => e.name == x).firstOrNull)
       .whereType<Extra>()
       .toList();
 
-  SupportPlan get supportPlanEnum => SupportPlan.values
-      .firstWhere((e) => e.name == supportPlan,
-          orElse: () => SupportPlan.none);
+  SupportPlan get supportPlanEnum => SupportPlan.values.firstWhere(
+    (e) => e.name == supportPlan,
+    orElse: () => SupportPlan.none,
+  );
 
   // ── Price calculations ────────────────────────────────────────────
   double get serviceBasePrice {
@@ -625,17 +632,16 @@ class QuotationConfig {
     return base;
   }
 
-  double get featuresTotal =>
-      featureEnums.fold(0.0, (s, f) => s + f.price);
+  double get featuresTotal => featureEnums.fold(0.0, (s, f) => s + f.price);
 
-  double get extrasTotal =>
-      extraEnums.fold(0.0, (s, e) => s + e.price);
+  double get extrasTotal => extraEnums.fold(0.0, (s, e) => s + e.price);
 
   double get developmentTotal => baseProject + featuresTotal + extrasTotal;
 
   double get monthlyRecurring {
-    final hosting =
-        serviceTypeEnum == ServiceType.app ? 0.0 : platformTierEnum.monthlyHosting;
+    final hosting = serviceTypeEnum == ServiceType.app
+        ? 0.0
+        : platformTierEnum.monthlyHosting;
     return hosting + userTierEnum.monthlyPrice + supportPlanEnum.monthlyPrice;
   }
 
