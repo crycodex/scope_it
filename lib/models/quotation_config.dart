@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/pricing_service.dart';
 
 // ── STEP 1: SERVICE TYPE ─────────────────────────────────────────────
 enum ServiceType {
@@ -606,12 +607,14 @@ class QuotationConfig {
   );
 
   // ── Price calculations ────────────────────────────────────────────
+  static PricingService get _px => PricingService.instance;
+
   double get serviceBasePrice {
     final sType = serviceTypeEnum;
     if (sType == null || sType == ServiceType.custom) {
       return customBasePrice ?? 0;
     }
-    return sType.basePrice;
+    return _px.serviceBasePrice(sType);
   }
 
   String get serviceLabel {
@@ -626,32 +629,40 @@ class QuotationConfig {
     final sType = serviceTypeEnum;
     final mp = mobilePlatformEnum;
     if (sType == ServiceType.app) {
-      return serviceBasePrice * (mp?.multiplier ?? 1.0);
+      return serviceBasePrice * (mp != null ? _px.mobilePlatformMultiplier(mp) : 1.0);
     }
-    double base = serviceBasePrice * platformTierEnum.multiplier;
-    return base;
+    return serviceBasePrice * _px.platformMultiplier(platformTierEnum);
   }
 
-  double get featuresTotal => featureEnums.fold(0.0, (s, f) => s + f.price);
+  double get featuresTotal =>
+      featureEnums.fold(0.0, (s, f) => s + _px.featurePrice(f));
 
-  double get extrasTotal => extraEnums.fold(0.0, (s, e) => s + e.price);
+  double get extrasTotal =>
+      extraEnums.fold(0.0, (s, e) => s + _px.extraPrice(e));
 
   double get developmentTotal => baseProject + featuresTotal + extrasTotal;
 
   double get monthlyRecurring {
     final hosting = serviceTypeEnum == ServiceType.app
         ? 0.0
-        : platformTierEnum.monthlyHosting;
-    return hosting + userTierEnum.monthlyPrice + supportPlanEnum.monthlyPrice;
+        : _px.platformHosting(platformTierEnum);
+    return hosting + userTierEnum.monthlyPrice + _px.supportMonthly(supportPlanEnum);
   }
 
   double get monthlyWithDiscount =>
       monthlyRecurring * billingCycleEnum.discount;
 
-  double get totalEstimate {
+  /// Total sin multiplicador global de cliente.
+  double get developmentTotalBase => developmentTotal;
+
+  /// Total con multiplicador global de cliente aplicado al desarrollo.
+  double totalEstimateWithMultiplier(double globalMult) {
+    final adjustedDev = developmentTotal * globalMult;
     if (billingCycleEnum == BillingCycle.annual) {
-      return developmentTotal + (monthlyWithDiscount * 12);
+      return adjustedDev + (monthlyWithDiscount * 12);
     }
-    return developmentTotal + monthlyRecurring;
+    return adjustedDev + monthlyRecurring;
   }
+
+  double get totalEstimate => totalEstimateWithMultiplier(1.0);
 }

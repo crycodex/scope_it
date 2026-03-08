@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../../app/theme.dart';
 import '../../../database/database_helper.dart';
 import '../../../models/project.dart';
 import '../../../models/quotation_config.dart';
+import '../../../providers/settings_provider.dart';
 import '../../../services/pricing_service.dart';
 import '../../../shared/widgets/neu_box.dart';
 
@@ -219,6 +221,13 @@ class _NewQuotationViewState extends State<NewQuotationView> {
   Future<void> _save() async {
     setState(() => _saving = true);
 
+    final globalMult = context.read<SettingsProvider>().multiplier;
+    final adjustedDevTotal = _developmentTotal * globalMult;
+    final monthlyPart = _billingCycle == BillingCycle.annual
+        ? _monthlyWithDiscount * 12
+        : _monthlyRecurring;
+    final finalTotal = adjustedDevTotal + monthlyPart;
+
     final config = QuotationConfig(
       serviceType: _serviceType!.name,
       customServiceName: _serviceType == ServiceType.custom
@@ -240,8 +249,8 @@ class _NewQuotationViewState extends State<NewQuotationView> {
       final updated = _editProject!.copyWith(
         name: _nameCtrl.text.trim(),
         clientName: _clientCtrl.text.trim(),
-        totalEstimate: _totalEstimate,
-        multiplierUsed: _platformTier.multiplier,
+        totalEstimate: finalTotal,
+        multiplierUsed: globalMult,
         configJson: json.encode(config.toJson()),
         iconCode: _selectedIconCode,
       );
@@ -251,8 +260,8 @@ class _NewQuotationViewState extends State<NewQuotationView> {
       final project = Project(
         name: _nameCtrl.text.trim(),
         clientName: _clientCtrl.text.trim(),
-        totalEstimate: _totalEstimate,
-        multiplierUsed: _platformTier.multiplier,
+        totalEstimate: finalTotal,
+        multiplierUsed: globalMult,
         createdAt: DateTime.now(),
         configJson: json.encode(config.toJson()),
         iconCode: _selectedIconCode,
@@ -269,6 +278,8 @@ class _NewQuotationViewState extends State<NewQuotationView> {
     final textColor = isDark ? AppColors.white : AppColors.black;
     final bgColor = isDark ? AppColors.grey900 : AppColors.white;
     final borderColor = isDark ? AppColors.white : AppColors.black;
+    final settingsProvider = context.watch<SettingsProvider>();
+    final globalMult = settingsProvider.multiplier;
 
     if (_loadingEdit) {
       return Scaffold(
@@ -330,7 +341,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                   _buildStepUsers(isDark, textColor, borderColor),
                   _buildStepExtras(isDark, textColor, borderColor),
                   _buildStepSupport(isDark, textColor, borderColor),
-                  _buildSummary(isDark, textColor, borderColor),
+                  _buildSummary(isDark, textColor, borderColor, globalMult),
                 ],
               ),
             ),
@@ -832,7 +843,8 @@ class _NewQuotationViewState extends State<NewQuotationView> {
   }
 
   // ── SUMMARY ────────────────────────────────────────────────────────
-  Widget _buildSummary(bool isDark, Color textColor, Color borderColor) {
+  Widget _buildSummary(
+      bool isDark, Color textColor, Color borderColor, double globalMult) {
     final serviceLabel = _serviceType == ServiceType.custom
         ? (_customName ?? 'Personalizado')
         : (_serviceType?.label ?? '');
@@ -923,14 +935,14 @@ class _NewQuotationViewState extends State<NewQuotationView> {
               ..._features.map(
                 (f) => _SummaryRow(
                   label: '+ ${f.label}',
-                  value: '\$${f.price.toStringAsFixed(0)}',
+                  value: '\$${_px.featurePrice(f).toStringAsFixed(0)}',
                   textColor: textColor,
                 ),
               ),
               ..._extras.map(
                 (e) => _SummaryRow(
                   label: '+ ${e.label}',
-                  value: '\$${e.price.toStringAsFixed(0)}',
+                  value: '\$${_px.extraPrice(e).toStringAsFixed(0)}',
                   textColor: textColor,
                 ),
               ),
@@ -945,6 +957,23 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                 textColor: textColor,
                 isBold: true,
               ),
+              if (globalMult != 1.0) ...[
+                const SizedBox(height: 4),
+                _SummaryRow(
+                  label: '  Factor cliente (${context.read<SettingsProvider>().companySize.label})',
+                  value: '×${globalMult.toStringAsFixed(1)}',
+                  textColor: textColor,
+                  valueColor: AppColors.blue,
+                  isSubtle: true,
+                ),
+                _SummaryRow(
+                  label: 'Desarrollo ajustado',
+                  value:
+                      '\$${(_developmentTotal * globalMult).toStringAsFixed(2)}',
+                  textColor: textColor,
+                  isBold: true,
+                ),
+              ],
             ],
           ),
         ),
@@ -969,7 +998,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                 _SummaryRow(
                   label: 'Hosting ${_platformTier.label}',
                   value:
-                      '\$${_platformTier.monthlyHosting.toStringAsFixed(0)}/mes',
+                      '\$${_px.platformHosting(_platformTier).toStringAsFixed(0)}/mes',
                   textColor: textColor,
                 ),
               if (_userTier.monthlyPrice > 0)
@@ -978,11 +1007,11 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                   value: '\$${_userTier.monthlyPrice.toStringAsFixed(0)}/mes',
                   textColor: textColor,
                 ),
-              if (_supportPlan.monthlyPrice > 0)
+              if (_px.supportMonthly(_supportPlan) > 0)
                 _SummaryRow(
                   label: 'Soporte ${_supportPlan.label}',
                   value:
-                      '\$${_supportPlan.monthlyPrice.toStringAsFixed(0)}/mes',
+                      '\$${_px.supportMonthly(_supportPlan).toStringAsFixed(0)}/mes',
                   textColor: textColor,
                 ),
               Container(
@@ -1050,7 +1079,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                 ),
               ),
               Text(
-                '\$${_totalEstimate.toStringAsFixed(2)}',
+                '\$${(_developmentTotal * globalMult + (_billingCycle == BillingCycle.annual ? _monthlyWithDiscount * 12 : _monthlyRecurring)).toStringAsFixed(2)}',
                 style: const TextStyle(
                   color: AppColors.white,
                   fontWeight: FontWeight.w800,
