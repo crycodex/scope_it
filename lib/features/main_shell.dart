@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:cupertino_native/cupertino_native.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../app/theme.dart';
 import 'home/views/home_view.dart';
 import 'services/views/services_view.dart';
 
@@ -54,49 +56,163 @@ class _MainShellState extends State<MainShell> {
           ),
 
           // ── FLOATING NAV BAR ─────────────────────────────────
-          Positioned(
-            left: 0,
-            right: 16,
-            bottom: 12,
+          if (Platform.isAndroid)
+            _AndroidNavBar(
+              currentIndex: _currentIndex,
+              onTap: _onTabTap,
+              onAdd: () => context.go('/quotation'),
+            )
+          else
+            Positioned(
+              left: 0,
+              right: 16,
+              bottom: 12,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  const btnWidth = 50.0;
+                  const gap = 100.0;
+                  final tabBarWidth = constraints.maxWidth - btnWidth - gap;
 
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                // Deja 52px para el botón + y 12px de gap
-                const btnWidth = 50.0;
-                const gap = 100.0;
-                final tabBarWidth = constraints.maxWidth - btnWidth - gap;
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: tabBarWidth,
+                        child: CNTabBar(
+                          items: const [
+                            CNTabBarItem(
+                              label: 'Inicio',
+                              icon: CNSymbol('house.fill'),
+                            ),
+                            CNTabBarItem(
+                              label: 'Servicios',
+                              icon: CNSymbol('square.grid.2x2.fill'),
+                            ),
+                          ],
+                          currentIndex: _currentIndex,
+                          onTap: _onTabTap,
+                        ),
+                      ),
+                      const SizedBox(width: gap),
+                      SizedBox(
+                        width: btnWidth,
+                        child: CNButton.icon(
+                          icon: const CNSymbol('plus'),
+                          onPressed: () => context.go('/quotation'),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
 
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: tabBarWidth,
-                      child: CNTabBar(
-                        items: const [
-                          CNTabBarItem(
-                            label: 'Inicio',
-                            icon: CNSymbol('house.fill'),
+// ── Android floating nav bar ─────────────────────────────────────────────────
+
+class _AndroidNavBar extends StatelessWidget {
+  const _AndroidNavBar({
+    required this.currentIndex,
+    required this.onTap,
+    required this.onAdd,
+  });
+
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+  final VoidCallback onAdd;
+
+  static const _items = [
+    (icon: Icons.home_rounded, label: 'Inicio'),
+    (icon: Icons.grid_view_rounded, label: 'Tarifas'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? AppColors.grey800 : AppColors.white;
+    final border = isDark ? AppColors.white : AppColors.black;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    return Positioned(
+      left: 16,
+      right: 16,
+      bottom: bottomPadding + 12,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Tab bar
+          Expanded(
+            child: Container(
+              height: 60,
+              decoration: BoxDecoration(
+                color: bg,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: border, width: AppColors.borderWidth),
+                boxShadow: [
+                  BoxShadow(
+                    color: border,
+                    offset: const Offset(3, 3),
+                    blurRadius: 0,
+                  ),
+                ],
+              ),
+              child: Row(
+                children: List.generate(_items.length, (i) {
+                  final item = _items[i];
+                  final selected = currentIndex == i;
+                  return Expanded(
+                    child: GestureDetector(
+                      onTap: () => onTap(i),
+                      behavior: HitTestBehavior.opaque,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            item.icon,
+                            size: 22,
+                            color: selected ? AppColors.blue : border.withAlpha(140),
                           ),
-                          CNTabBarItem(
-                            label: 'Servicios',
-                            icon: CNSymbol('square.grid.2x2.fill'),
+                          const SizedBox(height: 3),
+                          Text(
+                            item.label,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: selected ? AppColors.blue : border.withAlpha(140),
+                            ),
                           ),
                         ],
-                        currentIndex: _currentIndex,
-                        onTap: _onTabTap,
                       ),
                     ),
-                    const SizedBox(width: gap),
-                    SizedBox(
-                      width: btnWidth,
-                      child: CNButton.icon(
-                        icon: const CNSymbol('plus'),
-                        onPressed: () => context.go('/quotation'),
-                      ),
-                    ),
-                  ],
-                );
-              },
+                  );
+                }),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // FAB +
+          GestureDetector(
+            onTap: onAdd,
+            child: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: AppColors.blue,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: border, width: AppColors.borderWidth),
+                boxShadow: [
+                  BoxShadow(
+                    color: border,
+                    offset: const Offset(3, 3),
+                    blurRadius: 0,
+                  ),
+                ],
+              ),
+              child: const Icon(Icons.add_rounded, color: AppColors.white, size: 28),
             ),
           ),
         ],
