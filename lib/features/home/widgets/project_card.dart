@@ -70,23 +70,32 @@ class ProjectCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Thumbnail placeholder
+                // Thumbnail / icon
                 Container(
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: AppColors.grey200,
+                    color: project.iconCode != null
+                        ? AppColors.blue.withAlpha(20)
+                        : AppColors.grey200,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: isDark ? AppColors.white : AppColors.black,
                       width: 2,
                     ),
                   ),
-                  child: Icon(
-                    Icons.folder_outlined,
-                    size: 36,
-                    color: isDark ? AppColors.white : AppColors.grey800,
-                  ),
+                  child: project.iconCode != null
+                      ? Icon(
+                          IconData(project.iconCode!,
+                              fontFamily: 'MaterialIcons'),
+                          size: 36,
+                          color: AppColors.blue,
+                        )
+                      : Icon(
+                          Icons.folder_outlined,
+                          size: 36,
+                          color: isDark ? AppColors.white : AppColors.grey800,
+                        ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(

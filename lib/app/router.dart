@@ -20,7 +20,7 @@ final appRouter = GoRouter(
       name: 'newQuotation',
       pageBuilder: (context, state) => _slideRight(
         state: state,
-        child: const NewQuotationView(),
+        child: NewQuotationView(editProjectId: state.extra as int?),
       ),
     ),
     GoRoute(

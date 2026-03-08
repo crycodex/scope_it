@@ -22,7 +22,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -40,6 +40,10 @@ class DatabaseHelper {
     if (oldVersion < 3) {
       await db.execute(
           'ALTER TABLE projects ADD COLUMN configJson TEXT');
+    }
+    if (oldVersion < 4) {
+      await db.execute(
+          'ALTER TABLE projects ADD COLUMN iconCode INTEGER');
     }
   }
 
@@ -82,7 +86,8 @@ class DatabaseHelper {
         multiplierUsed REAL NOT NULL DEFAULT 1.0,
         status INTEGER NOT NULL DEFAULT 0,
         createdAt TEXT NOT NULL,
-        configJson TEXT
+        configJson TEXT,
+        iconCode INTEGER
       )
     ''');
 
@@ -248,6 +253,23 @@ class DatabaseHelper {
       await db.insert('project_lines', line.toMap()..['projectId'] = projectId);
     }
     return projectId;
+  }
+
+  Future<void> updateProject(Project project) async {
+    final db = await database;
+    await db.update(
+      'projects',
+      project.toMap(),
+      where: 'id = ?',
+      whereArgs: [project.id],
+    );
+    // Replace project lines
+    await db.delete('project_lines',
+        where: 'projectId = ?', whereArgs: [project.id]);
+    for (final line in project.lines) {
+      await db.insert(
+          'project_lines', line.toMap()..['projectId'] = project.id);
+    }
   }
 
   Future<int> updateProjectStatus(int id, ProjectStatus status) async {

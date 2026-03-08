@@ -48,7 +48,7 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
             // Header
             Container(
               color: bgColor,
-              padding: const EdgeInsets.fromLTRB(8, 12, 16, 12),
+              padding: const EdgeInsets.fromLTRB(8, 12, 12, 12),
               child: Row(
                 children: [
                   IconButton(
@@ -63,6 +63,32 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
                         fontWeight: FontWeight.w800,
                         color: textColor,
                       ),
+                    ),
+                  ),
+                  // Edit button
+                  GestureDetector(
+                    onTap: () => context.go('/quotation',
+                        extra: widget.projectId),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.grey800
+                            : AppColors.grey100,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: borderColor,
+                            width: AppColors.borderWidth),
+                        boxShadow: [
+                          BoxShadow(
+                              color: borderColor,
+                              offset: const Offset(3, 3),
+                              blurRadius: 0),
+                        ],
+                      ),
+                      child: Icon(Icons.edit_outlined,
+                          size: 18, color: textColor),
                     ),
                   ),
                 ],

@@ -42,6 +42,7 @@ class Project {
   final DateTime createdAt;
   final List<ProjectLine> lines;
   final String? configJson;
+  final int? iconCode;
 
   const Project({
     this.id,
@@ -54,6 +55,7 @@ class Project {
     required this.createdAt,
     this.lines = const [],
     this.configJson,
+    this.iconCode,
   });
 
   QuotationConfig? get quotationConfig {
@@ -77,6 +79,7 @@ class Project {
     DateTime? createdAt,
     List<ProjectLine>? lines,
     String? configJson,
+    int? iconCode,
   }) {
     return Project(
       id: id ?? this.id,
@@ -89,6 +92,7 @@ class Project {
       createdAt: createdAt ?? this.createdAt,
       lines: lines ?? this.lines,
       configJson: configJson ?? this.configJson,
+      iconCode: iconCode ?? this.iconCode,
     );
   }
 
@@ -103,6 +107,7 @@ class Project {
       'status': status.index,
       'createdAt': createdAt.toIso8601String(),
       'configJson': configJson,
+      'iconCode': iconCode,
     };
   }
 
@@ -118,6 +123,7 @@ class Project {
       createdAt: DateTime.parse(map['createdAt'] as String),
       lines: const [],
       configJson: map['configJson'] as String?,
+      iconCode: map['iconCode'] as int?,
     );
   }
 }
