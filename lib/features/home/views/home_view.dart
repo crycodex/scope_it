@@ -159,7 +159,8 @@ class _HomeViewState extends State<HomeView> {
                               final project = _filtered[index];
                               return ProjectCard(
                                 project: project,
-                                onTap: () => context.go('/project/${project.id}'),
+                                onTap: () =>
+                                    context.go('/project/${project.id}'),
                                 onDelete: () => _deleteProject(project),
                                 onStatusChange: (s) =>
                                     _changeStatus(project, s),
@@ -238,7 +239,6 @@ class _NeuSearchBar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: isDark ? AppColors.grey800 : AppColors.grey100,
-        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: borderColor, width: AppColors.borderWidth),
         boxShadow: [
           BoxShadow(

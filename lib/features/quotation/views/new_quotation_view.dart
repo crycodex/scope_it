@@ -151,8 +151,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
 
   double get _featuresTotal =>
       _features.fold(0.0, (s, f) => s + _px.featurePrice(f));
-  double get _extrasTotal =>
-      _extras.fold(0.0, (s, e) => s + _px.extraPrice(e));
+  double get _extrasTotal => _extras.fold(0.0, (s, e) => s + _px.extraPrice(e));
   double get _developmentTotal => _baseProject + _featuresTotal + _extrasTotal;
 
   double get _monthlyRecurring {
@@ -527,71 +526,66 @@ class _NewQuotationViewState extends State<NewQuotationView> {
       children: [
         _StepTitle(label: 'Plataforma de Distribución', textColor: textColor),
         const SizedBox(height: 12),
-        ...MobilePlatform.values.map(
-          (mp) {
-            final tag = priceTag(mp);
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: NeuBox(
-                color: _mobilePlatform == mp
-                    ? AppColors.blue.withAlpha(25)
-                    : (isDark ? AppColors.grey800 : AppColors.white),
-                onTap: () => setState(() => _mobilePlatform = mp),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      mp.icon,
-                      color: _mobilePlatform == mp ? AppColors.blue : textColor,
-                      size: 22,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            mp.label,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              color: textColor,
-                              fontSize: 14,
-                            ),
+        ...MobilePlatform.values.map((mp) {
+          final tag = priceTag(mp);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: NeuBox(
+              color: _mobilePlatform == mp
+                  ? AppColors.blue.withAlpha(25)
+                  : (isDark ? AppColors.grey800 : AppColors.white),
+              onTap: () => setState(() => _mobilePlatform = mp),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  Icon(
+                    mp.icon,
+                    color: _mobilePlatform == mp ? AppColors.blue : textColor,
+                    size: 22,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          mp.label,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: textColor,
+                            fontSize: 14,
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            mp.description,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: textColor.withAlpha(150),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (tag.isNotEmpty) ...[
-                      Text(
-                        tag,
-                        style: TextStyle(
-                          color: tag.startsWith('-')
-                              ? Colors.green
-                              : AppColors.blue,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
                         ),
+                        const SizedBox(height: 2),
+                        Text(
+                          mp.description,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: textColor.withAlpha(150),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (tag.isNotEmpty) ...[
+                    Text(
+                      tag,
+                      style: TextStyle(
+                        color: tag.startsWith('-')
+                            ? Colors.green
+                            : AppColors.blue,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
                       ),
-                      const SizedBox(width: 8),
-                    ],
-                    _Radio(selected: _mobilePlatform == mp, isDark: isDark),
+                    ),
+                    const SizedBox(width: 8),
                   ],
-                ),
+                  _Radio(selected: _mobilePlatform == mp, isDark: isDark),
+                ],
               ),
-            );
-          },
-        ),
+            ),
+          );
+        }),
       ],
     );
   }
@@ -844,7 +838,11 @@ class _NewQuotationViewState extends State<NewQuotationView> {
 
   // ── SUMMARY ────────────────────────────────────────────────────────
   Widget _buildSummary(
-      bool isDark, Color textColor, Color borderColor, double globalMult) {
+    bool isDark,
+    Color textColor,
+    Color borderColor,
+    double globalMult,
+  ) {
     final serviceLabel = _serviceType == ServiceType.custom
         ? (_customName ?? 'Personalizado')
         : (_serviceType?.label ?? '');
@@ -960,7 +958,8 @@ class _NewQuotationViewState extends State<NewQuotationView> {
               if (globalMult != 1.0) ...[
                 const SizedBox(height: 4),
                 _SummaryRow(
-                  label: '  Factor cliente (${context.read<SettingsProvider>().companySize.label})',
+                  label:
+                      '  Factor cliente (${context.read<SettingsProvider>().companySize.label})',
                   value: '×${globalMult.toStringAsFixed(1)}',
                   textColor: textColor,
                   valueColor: AppColors.blue,
@@ -1377,7 +1376,6 @@ class _NeuField extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: isDark ? AppColors.grey800 : AppColors.grey100,
-        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: borderColor, width: AppColors.borderWidth),
         boxShadow: [
           BoxShadow(
