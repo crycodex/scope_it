@@ -8,36 +8,9 @@ import '../../../database/database_helper.dart';
 import '../../../models/project.dart';
 import '../../../models/quotation_config.dart';
 import '../../../providers/settings_provider.dart';
+import '../../../constants/project_icons.dart';
 import '../../../services/pricing_service.dart';
 import '../../../shared/widgets/neu_box.dart';
-
-// Curated icon set for projects
-const kProjectIcons = [
-  Icons.folder,
-  Icons.language,
-  Icons.phone_iphone,
-  Icons.dns,
-  Icons.smart_toy,
-  Icons.business_center,
-  Icons.palette,
-  Icons.code,
-  Icons.rocket_launch,
-  Icons.shopping_cart,
-  Icons.health_and_safety,
-  Icons.school,
-  Icons.restaurant,
-  Icons.local_shipping,
-  Icons.credit_card,
-  Icons.analytics,
-  Icons.dashboard,
-  Icons.camera_alt,
-  Icons.music_note,
-  Icons.sports_soccer,
-  Icons.travel_explore,
-  Icons.store,
-  Icons.home_work,
-  Icons.construction,
-];
 
 class NewQuotationView extends StatefulWidget {
   const NewQuotationView({super.key, this.editProjectId});
@@ -846,6 +819,9 @@ class _NewQuotationViewState extends State<NewQuotationView> {
     final serviceLabel = _serviceType == ServiceType.custom
         ? (_customName ?? 'Personalizado')
         : (_serviceType?.label ?? '');
+    final selectedIcon = _selectedIconCode != null
+        ? iconDataFromCode(_selectedIconCode!)
+        : null;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
@@ -858,7 +834,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              if (_selectedIconCode != null) ...[
+              if (selectedIcon != null) ...[
                 Container(
                   width: 48,
                   height: 48,
@@ -867,7 +843,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    IconData(_selectedIconCode!, fontFamily: 'MaterialIcons'),
+                    selectedIcon,
                     color: AppColors.blue,
                     size: 26,
                   ),

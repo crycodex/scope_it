@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../app/theme.dart';
+import '../../../constants/project_icons.dart';
 import '../../../models/project.dart';
 import '../../../shared/widgets/neu_box.dart';
 
@@ -23,6 +24,9 @@ class ProjectCard extends StatelessWidget {
     final textColor = isDark ? AppColors.white : AppColors.black;
     final cardBg = isDark ? AppColors.grey800 : AppColors.white;
     final statusColor = Color(project.status.colorValue);
+    final projectIcon = project.iconCode != null
+        ? iconDataFromCode(project.iconCode!)
+        : null;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -84,10 +88,9 @@ class ProjectCard extends StatelessWidget {
                       width: 2,
                     ),
                   ),
-                  child: project.iconCode != null
+                  child: projectIcon != null
                       ? Icon(
-                          IconData(project.iconCode!,
-                              fontFamily: 'MaterialIcons'),
+                          projectIcon,
                           size: 36,
                           color: AppColors.blue,
                         )
