@@ -172,7 +172,9 @@ enum BillingCycle {
 enum MobilePlatform {
   playStore,
   appStore,
-  both;
+  both,
+  apkOnly,
+  appBundleOnly;
 
   String get label {
     switch (this) {
@@ -181,7 +183,26 @@ enum MobilePlatform {
       case MobilePlatform.appStore:
         return 'App Store';
       case MobilePlatform.both:
-        return 'Ambas';
+        return 'Ambas tiendas';
+      case MobilePlatform.apkOnly:
+        return 'Solo APK';
+      case MobilePlatform.appBundleOnly:
+        return 'Solo App Bundle';
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case MobilePlatform.playStore:
+        return 'Publicación en Google Play';
+      case MobilePlatform.appStore:
+        return 'Publicación en Apple App Store';
+      case MobilePlatform.both:
+        return 'Google Play + Apple App Store';
+      case MobilePlatform.apkOnly:
+        return 'Entrega de archivo APK sin publicación';
+      case MobilePlatform.appBundleOnly:
+        return 'Entrega de archivo AAB sin publicación';
     }
   }
 
@@ -193,6 +214,10 @@ enum MobilePlatform {
         return Icons.apple;
       case MobilePlatform.both:
         return Icons.devices;
+      case MobilePlatform.apkOnly:
+        return Icons.android;
+      case MobilePlatform.appBundleOnly:
+        return Icons.inventory_2_outlined;
     }
   }
 
@@ -201,9 +226,13 @@ enum MobilePlatform {
       case MobilePlatform.playStore:
         return 1.0;
       case MobilePlatform.appStore:
-        return 1.0;
+        return 1.1;
       case MobilePlatform.both:
         return 1.5;
+      case MobilePlatform.apkOnly:
+        return 0.85;
+      case MobilePlatform.appBundleOnly:
+        return 0.85;
     }
   }
 }
@@ -587,11 +616,12 @@ class QuotationConfig {
   }
 
   double get baseProject {
-    double base = serviceBasePrice * platformTierEnum.multiplier;
+    final sType = serviceTypeEnum;
     final mp = mobilePlatformEnum;
-    if (serviceTypeEnum == ServiceType.app && mp != null) {
-      base *= mp.multiplier;
+    if (sType == ServiceType.app) {
+      return serviceBasePrice * (mp?.multiplier ?? 1.0);
     }
+    double base = serviceBasePrice * platformTierEnum.multiplier;
     return base;
   }
 
@@ -603,10 +633,11 @@ class QuotationConfig {
 
   double get developmentTotal => baseProject + featuresTotal + extrasTotal;
 
-  double get monthlyRecurring =>
-      platformTierEnum.monthlyHosting +
-      userTierEnum.monthlyPrice +
-      supportPlanEnum.monthlyPrice;
+  double get monthlyRecurring {
+    final hosting =
+        serviceTypeEnum == ServiceType.app ? 0.0 : platformTierEnum.monthlyHosting;
+    return hosting + userTierEnum.monthlyPrice + supportPlanEnum.monthlyPrice;
+  }
 
   double get monthlyWithDiscount =>
       monthlyRecurring * billingCycleEnum.discount;

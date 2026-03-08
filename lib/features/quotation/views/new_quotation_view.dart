@@ -89,8 +89,9 @@ class _NewQuotationViewState extends State<NewQuotationView> {
 
   Future<void> _loadForEdit() async {
     setState(() => _loadingEdit = true);
-    final project =
-        await DatabaseHelper.instance.getProject(widget.editProjectId!);
+    final project = await DatabaseHelper.instance.getProject(
+      widget.editProjectId!,
+    );
     if (project == null || !mounted) return;
 
     _editProject = project;
@@ -136,22 +137,23 @@ class _NewQuotationViewState extends State<NewQuotationView> {
   }
 
   double get _baseProject {
-    double base = _basePrice * _platformTier.multiplier;
-    if (_serviceType == ServiceType.app) base *= _mobilePlatform.multiplier;
-    return base;
+    if (_serviceType == ServiceType.app) {
+      return _basePrice * _mobilePlatform.multiplier;
+    }
+    return _basePrice * _platformTier.multiplier;
   }
 
   double get _featuresTotal => _features.fold(0.0, (s, f) => s + f.price);
   double get _extrasTotal => _extras.fold(0.0, (s, e) => s + e.price);
   double get _developmentTotal => _baseProject + _featuresTotal + _extrasTotal;
 
-  double get _monthlyRecurring =>
-      _platformTier.monthlyHosting +
-      _userTier.monthlyPrice +
-      _supportPlan.monthlyPrice;
+  double get _monthlyRecurring {
+    final hosting =
+        _serviceType == ServiceType.app ? 0.0 : _platformTier.monthlyHosting;
+    return hosting + _userTier.monthlyPrice + _supportPlan.monthlyPrice;
+  }
 
-  double get _monthlyWithDiscount =>
-      _monthlyRecurring * _billingCycle.discount;
+  double get _monthlyWithDiscount => _monthlyRecurring * _billingCycle.discount;
 
   double get _totalEstimate {
     if (_billingCycle == BillingCycle.annual) {
@@ -162,9 +164,11 @@ class _NewQuotationViewState extends State<NewQuotationView> {
 
   // ── Navigation ─────────────────────────────────────────────────────
   void _goToStep(int step) {
-    _pageCtrl.animateToPage(step,
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeInOutCubic);
+    _pageCtrl.animateToPage(
+      step,
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeInOutCubic,
+    );
     setState(() => _currentStep = step);
   }
 
@@ -210,14 +214,15 @@ class _NewQuotationViewState extends State<NewQuotationView> {
 
     final config = QuotationConfig(
       serviceType: _serviceType!.name,
-      customServiceName:
-          _serviceType == ServiceType.custom ? _customName : null,
-      customBasePrice:
-          _serviceType == ServiceType.custom ? _customPrice : null,
+      customServiceName: _serviceType == ServiceType.custom
+          ? _customName
+          : null,
+      customBasePrice: _serviceType == ServiceType.custom ? _customPrice : null,
       platformTier: _platformTier.name,
       billingCycle: _billingCycle.name,
-      mobilePlatform:
-          _serviceType == ServiceType.app ? _mobilePlatform.name : null,
+      mobilePlatform: _serviceType == ServiceType.app
+          ? _mobilePlatform.name
+          : null,
       features: _features.map((f) => f.name).toList(),
       userTier: _userTier.name,
       extras: _extras.map((e) => e.name).toList(),
@@ -331,8 +336,9 @@ class _NewQuotationViewState extends State<NewQuotationView> {
 
   // ── STEP 0: SERVICIO ───────────────────────────────────────────────
   Widget _buildStepService(bool isDark, Color textColor, Color borderColor) {
-    final types =
-        ServiceType.values.where((t) => t != ServiceType.custom).toList();
+    final types = ServiceType.values
+        .where((t) => t != ServiceType.custom)
+        .toList();
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
@@ -378,24 +384,23 @@ class _NewQuotationViewState extends State<NewQuotationView> {
           crossAxisSpacing: 12,
           childAspectRatio: 1.3,
           children: [
-            ...types.map((type) => _ServiceCard(
-                  type: type,
-                  selected: _serviceType == type,
-                  onTap: () => setState(() {
-                    _serviceType = type;
-                    _features.removeWhere(
-                        (f) => !f.availableFor.contains(type));
-                    _extras.removeWhere(
-                        (e) => !e.availableFor.contains(type));
-                  }),
-                  isDark: isDark,
-                )),
+            ...types.map(
+              (type) => _ServiceCard(
+                type: type,
+                selected: _serviceType == type,
+                onTap: () => setState(() {
+                  _serviceType = type;
+                  _features.removeWhere((f) => !f.availableFor.contains(type));
+                  _extras.removeWhere((e) => !e.availableFor.contains(type));
+                }),
+                isDark: isDark,
+              ),
+            ),
             _ServiceCard(
               type: ServiceType.custom,
               selected: _serviceType == ServiceType.custom,
               onTap: () async {
-                final result =
-                    await _showCustomServiceDialog(context, isDark);
+                final result = await _showCustomServiceDialog(context, isDark);
                 if (result != null) {
                   setState(() {
                     _serviceType = ServiceType.custom;
@@ -405,8 +410,9 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                 }
               },
               isDark: isDark,
-              customLabel:
-                  _serviceType == ServiceType.custom ? _customName : null,
+              customLabel: _serviceType == ServiceType.custom
+                  ? _customName
+                  : null,
             ),
           ],
         ),
@@ -415,10 +421,13 @@ class _NewQuotationViewState extends State<NewQuotationView> {
   }
 
   Future<(String, double)?> _showCustomServiceDialog(
-      BuildContext ctx, bool isDark) async {
+    BuildContext ctx,
+    bool isDark,
+  ) async {
     final nameCtrl = TextEditingController(text: _customName);
     final priceCtrl = TextEditingController(
-        text: _customPrice?.toStringAsFixed(0) ?? '');
+      text: _customPrice?.toStringAsFixed(0) ?? '',
+    );
     final borderColor = isDark ? AppColors.white : AppColors.black;
 
     return showDialog<(String, double)>(
@@ -428,22 +437,27 @@ class _NewQuotationViewState extends State<NewQuotationView> {
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(color: borderColor, width: AppColors.borderWidth),
         ),
-        title: const Text('Servicio Personalizado',
-            style: TextStyle(fontWeight: FontWeight.w800)),
+        title: const Text(
+          'Servicio Personalizado',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: nameCtrl,
-              decoration:
-                  const InputDecoration(labelText: 'Nombre del servicio'),
+              decoration: const InputDecoration(
+                labelText: 'Nombre del servicio',
+              ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: priceCtrl,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                  labelText: 'Precio base (\$)', prefixText: '\$ '),
+                labelText: 'Precio base (\$)',
+                prefixText: '\$ ',
+              ),
             ),
           ],
         ),
@@ -469,26 +483,124 @@ class _NewQuotationViewState extends State<NewQuotationView> {
 
   // ── STEP 1: PLATAFORMA ─────────────────────────────────────────────
   Widget _buildStepPlatform(bool isDark, Color textColor, Color borderColor) {
+    if (_serviceType == ServiceType.app) {
+      return _buildMobilePlatformStep(isDark, textColor);
+    }
+    return _buildDeploymentStep(isDark, textColor);
+  }
+
+  Widget _buildMobilePlatformStep(bool isDark, Color textColor) {
+    String priceTag(MobilePlatform mp) {
+      switch (mp) {
+        case MobilePlatform.both:
+          return '+50%';
+        case MobilePlatform.appStore:
+          return '+10%';
+        case MobilePlatform.apkOnly:
+        case MobilePlatform.appBundleOnly:
+          return '-15%';
+        default:
+          return '';
+      }
+    }
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+      children: [
+        _StepTitle(label: 'Plataforma de Distribución', textColor: textColor),
+        const SizedBox(height: 12),
+        ...MobilePlatform.values.map(
+          (mp) {
+            final tag = priceTag(mp);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: NeuBox(
+                color: _mobilePlatform == mp
+                    ? AppColors.blue.withAlpha(25)
+                    : (isDark ? AppColors.grey800 : AppColors.white),
+                onTap: () => setState(() => _mobilePlatform = mp),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      mp.icon,
+                      color: _mobilePlatform == mp ? AppColors.blue : textColor,
+                      size: 22,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            mp.label,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: textColor,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            mp.description,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: textColor.withAlpha(150),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (tag.isNotEmpty) ...[
+                      Text(
+                        tag,
+                        style: TextStyle(
+                          color: tag.startsWith('-')
+                              ? Colors.green
+                              : AppColors.blue,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    _Radio(selected: _mobilePlatform == mp, isDark: isDark),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDeploymentStep(bool isDark, Color textColor) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
       children: [
         _StepTitle(label: 'Plan de Despliegue', textColor: textColor),
         const SizedBox(height: 12),
-        ...PlatformTier.values.map((tier) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _TierCard(
-                title: tier.label,
-                subtitle: tier.description,
-                price: '\$${tier.monthlyHosting.toStringAsFixed(0)}/mes',
-                icon: tier.icon,
-                selected: _platformTier == tier,
-                onTap: () => setState(() => _platformTier = tier),
-                isDark: isDark,
-                accentColor: tier == PlatformTier.professional
-                    ? AppColors.blue
-                    : null,
-              ),
-            )),
+        ...PlatformTier.values.map(
+          (tier) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _TierCard(
+              title: tier.label,
+              subtitle: tier.description,
+              price: '\$${tier.monthlyHosting.toStringAsFixed(0)}/mes',
+              icon: tier.icon,
+              selected: _platformTier == tier,
+              onTap: () => setState(() => _platformTier = tier),
+              isDark: isDark,
+              accentColor: tier == PlatformTier.professional
+                  ? AppColors.blue
+                  : null,
+            ),
+          ),
+        ),
         const SizedBox(height: 20),
         _StepTitle(label: 'Ciclo de Facturación', textColor: textColor),
         const SizedBox(height: 12),
@@ -498,15 +610,18 @@ class _NewQuotationViewState extends State<NewQuotationView> {
             return Expanded(
               child: Padding(
                 padding: EdgeInsets.only(
-                    right: cycle == BillingCycle.monthly ? 6 : 0,
-                    left: cycle == BillingCycle.annual ? 6 : 0),
+                  right: cycle == BillingCycle.monthly ? 6 : 0,
+                  left: cycle == BillingCycle.annual ? 6 : 0,
+                ),
                 child: NeuBox(
                   color: selected
                       ? AppColors.blue
                       : (isDark ? AppColors.grey800 : AppColors.grey100),
                   onTap: () => setState(() => _billingCycle = cycle),
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   child: Center(
                     child: Text(
                       cycle.label,
@@ -522,46 +637,6 @@ class _NewQuotationViewState extends State<NewQuotationView> {
             );
           }).toList(),
         ),
-        if (_serviceType == ServiceType.app) ...[
-          const SizedBox(height: 20),
-          _StepTitle(label: 'Plataforma Móvil', textColor: textColor),
-          const SizedBox(height: 12),
-          ...MobilePlatform.values.map((mp) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: NeuBox(
-                  color: _mobilePlatform == mp
-                      ? AppColors.blue.withAlpha(25)
-                      : (isDark ? AppColors.grey800 : AppColors.white),
-                  onTap: () => setState(() => _mobilePlatform = mp),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
-                  child: Row(
-                    children: [
-                      Icon(mp.icon,
-                          color: _mobilePlatform == mp
-                              ? AppColors.blue
-                              : textColor,
-                          size: 22),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(mp.label,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: textColor)),
-                      ),
-                      if (mp == MobilePlatform.both)
-                        Text('+50%',
-                            style: TextStyle(
-                                color: AppColors.blue,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 12)),
-                      const SizedBox(width: 8),
-                      _Radio(selected: _mobilePlatform == mp, isDark: isDark),
-                    ],
-                  ),
-                ),
-              )),
-        ],
       ],
     );
   }
@@ -569,10 +644,12 @@ class _NewQuotationViewState extends State<NewQuotationView> {
   // ── STEP 2: FUNCIONALIDADES ────────────────────────────────────────
   Widget _buildStepFeatures(bool isDark, Color textColor, Color borderColor) {
     final available = Feature.values
-        .where((f) =>
-            _serviceType == null ||
-            _serviceType == ServiceType.custom ||
-            f.availableFor.contains(_serviceType))
+        .where(
+          (f) =>
+              _serviceType == null ||
+              _serviceType == ServiceType.custom ||
+              f.availableFor.contains(_serviceType),
+        )
         .toList();
 
     return ListView(
@@ -580,22 +657,28 @@ class _NewQuotationViewState extends State<NewQuotationView> {
       children: [
         _StepTitle(label: 'Funcionalidades', textColor: textColor),
         const SizedBox(height: 4),
-        Text('Selecciona las funcionalidades que necesitas',
-            style: TextStyle(color: textColor.withAlpha(160), fontSize: 13)),
+        Text(
+          'Selecciona las funcionalidades que necesitas',
+          style: TextStyle(color: textColor.withAlpha(160), fontSize: 13),
+        ),
         const SizedBox(height: 16),
-        ...available.map((feature) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _CheckCard(
-                title: feature.label,
-                subtitle: '\$${feature.price.toStringAsFixed(0)}',
-                icon: feature.icon,
-                checked: _features.contains(feature),
-                onTap: () => setState(() => _features.contains(feature)
+        ...available.map(
+          (feature) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _CheckCard(
+              title: feature.label,
+              subtitle: '\$${feature.price.toStringAsFixed(0)}',
+              icon: feature.icon,
+              checked: _features.contains(feature),
+              onTap: () => setState(
+                () => _features.contains(feature)
                     ? _features.remove(feature)
-                    : _features.add(feature)),
-                isDark: isDark,
+                    : _features.add(feature),
               ),
-            )),
+              isDark: isDark,
+            ),
+          ),
+        ),
         if (available.isEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 20),
@@ -615,45 +698,54 @@ class _NewQuotationViewState extends State<NewQuotationView> {
       children: [
         _StepTitle(label: 'Usuarios Esperados / Mes', textColor: textColor),
         const SizedBox(height: 4),
-        Text('Esto afecta los costos de infraestructura',
-            style: TextStyle(color: textColor.withAlpha(160), fontSize: 13)),
+        Text(
+          'Esto afecta los costos de infraestructura',
+          style: TextStyle(color: textColor.withAlpha(160), fontSize: 13),
+        ),
         const SizedBox(height: 16),
-        ...UserTier.values.map((tier) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: NeuBox(
-                color: _userTier == tier
-                    ? AppColors.blue.withAlpha(25)
-                    : (isDark ? AppColors.grey800 : AppColors.white),
-                onTap: () => setState(() => _userTier = tier),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 14),
-                child: Row(
-                  children: [
-                    Icon(tier.icon,
-                        color:
-                            _userTier == tier ? AppColors.blue : textColor,
-                        size: 22),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(tier.label,
-                          style: TextStyle(
-                              fontWeight: FontWeight.w700, color: textColor)),
-                    ),
-                    Text(
-                      tier.monthlyPrice == 0
-                          ? 'Incluido'
-                          : '+\$${tier.monthlyPrice.toStringAsFixed(0)}/mes',
+        ...UserTier.values.map(
+          (tier) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: NeuBox(
+              color: _userTier == tier
+                  ? AppColors.blue.withAlpha(25)
+                  : (isDark ? AppColors.grey800 : AppColors.white),
+              onTap: () => setState(() => _userTier = tier),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  Icon(
+                    tier.icon,
+                    color: _userTier == tier ? AppColors.blue : textColor,
+                    size: 22,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      tier.label,
                       style: TextStyle(
-                          color: AppColors.blue,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13),
+                        fontWeight: FontWeight.w700,
+                        color: textColor,
+                      ),
                     ),
-                    const SizedBox(width: 8),
-                    _Radio(selected: _userTier == tier, isDark: isDark),
-                  ],
-                ),
+                  ),
+                  Text(
+                    tier.monthlyPrice == 0
+                        ? 'Incluido'
+                        : '+\$${tier.monthlyPrice.toStringAsFixed(0)}/mes',
+                    style: TextStyle(
+                      color: AppColors.blue,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _Radio(selected: _userTier == tier, isDark: isDark),
+                ],
               ),
-            )),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -661,10 +753,12 @@ class _NewQuotationViewState extends State<NewQuotationView> {
   // ── STEP 4: ADICIONALES ────────────────────────────────────────────
   Widget _buildStepExtras(bool isDark, Color textColor, Color borderColor) {
     final available = Extra.values
-        .where((e) =>
-            _serviceType == null ||
-            _serviceType == ServiceType.custom ||
-            e.availableFor.contains(_serviceType))
+        .where(
+          (e) =>
+              _serviceType == null ||
+              _serviceType == ServiceType.custom ||
+              e.availableFor.contains(_serviceType),
+        )
         .toList();
 
     return ListView(
@@ -672,22 +766,28 @@ class _NewQuotationViewState extends State<NewQuotationView> {
       children: [
         _StepTitle(label: 'Servicios Adicionales', textColor: textColor),
         const SizedBox(height: 4),
-        Text('Agrega módulos extra a tu proyecto',
-            style: TextStyle(color: textColor.withAlpha(160), fontSize: 13)),
+        Text(
+          'Agrega módulos extra a tu proyecto',
+          style: TextStyle(color: textColor.withAlpha(160), fontSize: 13),
+        ),
         const SizedBox(height: 16),
-        ...available.map((extra) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _CheckCard(
-                title: extra.label,
-                subtitle: '\$${extra.price.toStringAsFixed(0)}',
-                icon: extra.icon,
-                checked: _extras.contains(extra),
-                onTap: () => setState(() => _extras.contains(extra)
+        ...available.map(
+          (extra) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _CheckCard(
+              title: extra.label,
+              subtitle: '\$${extra.price.toStringAsFixed(0)}',
+              icon: extra.icon,
+              checked: _extras.contains(extra),
+              onTap: () => setState(
+                () => _extras.contains(extra)
                     ? _extras.remove(extra)
-                    : _extras.add(extra)),
-                isDark: isDark,
+                    : _extras.add(extra),
               ),
-            )),
+              isDark: isDark,
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -699,23 +799,27 @@ class _NewQuotationViewState extends State<NewQuotationView> {
       children: [
         _StepTitle(label: 'Plan de Soporte', textColor: textColor),
         const SizedBox(height: 4),
-        Text('Elige un plan de soporte y mantenimiento',
-            style: TextStyle(color: textColor.withAlpha(160), fontSize: 13)),
+        Text(
+          'Elige un plan de soporte y mantenimiento',
+          style: TextStyle(color: textColor.withAlpha(160), fontSize: 13),
+        ),
         const SizedBox(height: 16),
-        ...SupportPlan.values.map((plan) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _TierCard(
-                title: plan.label,
-                subtitle: plan.description,
-                price: plan.monthlyPrice == 0
-                    ? 'Gratis'
-                    : '\$${plan.monthlyPrice.toStringAsFixed(0)}/mes',
-                icon: plan.icon,
-                selected: _supportPlan == plan,
-                onTap: () => setState(() => _supportPlan = plan),
-                isDark: isDark,
-              ),
-            )),
+        ...SupportPlan.values.map(
+          (plan) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _TierCard(
+              title: plan.label,
+              subtitle: plan.description,
+              price: plan.monthlyPrice == 0
+                  ? 'Gratis'
+                  : '\$${plan.monthlyPrice.toStringAsFixed(0)}/mes',
+              icon: plan.icon,
+              selected: _supportPlan == plan,
+              onTap: () => setState(() => _supportPlan = plan),
+              isDark: isDark,
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -746,8 +850,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    IconData(_selectedIconCode!,
-                        fontFamily: 'MaterialIcons'),
+                    IconData(_selectedIconCode!, fontFamily: 'MaterialIcons'),
                     color: AppColors.blue,
                     size: 26,
                   ),
@@ -758,15 +861,19 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(_nameCtrl.text,
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: textColor)),
+                    Text(
+                      _nameCtrl.text,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: textColor,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text('Cliente: ${_clientCtrl.text}',
-                        style: TextStyle(
-                            color: textColor.withAlpha(180))),
+                    Text(
+                      'Cliente: ${_clientCtrl.text}',
+                      style: TextStyle(color: textColor.withAlpha(180)),
+                    ),
                   ],
                 ),
               ),
@@ -781,38 +888,50 @@ class _NewQuotationViewState extends State<NewQuotationView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Desarrollo',
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: textColor)),
+              Text(
+                'Desarrollo',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: textColor,
+                ),
+              ),
               const SizedBox(height: 12),
               _SummaryRow(
-                label: '$serviceLabel (${_platformTier.label})',
+                label: _serviceType == ServiceType.app
+                    ? serviceLabel
+                    : '$serviceLabel (${_platformTier.label})',
                 value: '\$${_baseProject.toStringAsFixed(2)}',
                 textColor: textColor,
               ),
               if (_serviceType == ServiceType.app)
                 _SummaryRow(
-                  label: '  Plataforma: ${_mobilePlatform.label}',
-                  value: _mobilePlatform == MobilePlatform.both ? '+50%' : '',
+                  label: '  Distribución: ${_mobilePlatform.label}',
+                  value: _mobilePlatform.multiplier != 1.0
+                      ? '×${_mobilePlatform.multiplier.toStringAsFixed(2)}'
+                      : '',
                   textColor: textColor,
                   isSubtle: true,
                 ),
-              ..._features.map((f) => _SummaryRow(
-                    label: '+ ${f.label}',
-                    value: '\$${f.price.toStringAsFixed(0)}',
-                    textColor: textColor,
-                  )),
-              ..._extras.map((e) => _SummaryRow(
-                    label: '+ ${e.label}',
-                    value: '\$${e.price.toStringAsFixed(0)}',
-                    textColor: textColor,
-                  )),
+              ..._features.map(
+                (f) => _SummaryRow(
+                  label: '+ ${f.label}',
+                  value: '\$${f.price.toStringAsFixed(0)}',
+                  textColor: textColor,
+                ),
+              ),
+              ..._extras.map(
+                (e) => _SummaryRow(
+                  label: '+ ${e.label}',
+                  value: '\$${e.price.toStringAsFixed(0)}',
+                  textColor: textColor,
+                ),
+              ),
               Container(
-                  height: 1.5,
-                  color: borderColor.withAlpha(60),
-                  margin: const EdgeInsets.symmetric(vertical: 8)),
+                height: 1.5,
+                color: borderColor.withAlpha(60),
+                margin: const EdgeInsets.symmetric(vertical: 8),
+              ),
               _SummaryRow(
                 label: 'Subtotal desarrollo',
                 value: '\$${_developmentTotal.toStringAsFixed(2)}',
@@ -830,23 +949,26 @@ class _NewQuotationViewState extends State<NewQuotationView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Costos Recurrentes',
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: textColor)),
-              const SizedBox(height: 12),
-              _SummaryRow(
-                label: 'Hosting ${_platformTier.label}',
-                value:
-                    '\$${_platformTier.monthlyHosting.toStringAsFixed(0)}/mes',
-                textColor: textColor,
+              Text(
+                'Costos Recurrentes',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: textColor,
+                ),
               ),
+              const SizedBox(height: 12),
+              if (_serviceType != ServiceType.app)
+                _SummaryRow(
+                  label: 'Hosting ${_platformTier.label}',
+                  value:
+                      '\$${_platformTier.monthlyHosting.toStringAsFixed(0)}/mes',
+                  textColor: textColor,
+                ),
               if (_userTier.monthlyPrice > 0)
                 _SummaryRow(
                   label: 'Usuarios (${_userTier.label})',
-                  value:
-                      '\$${_userTier.monthlyPrice.toStringAsFixed(0)}/mes',
+                  value: '\$${_userTier.monthlyPrice.toStringAsFixed(0)}/mes',
                   textColor: textColor,
                 ),
               if (_supportPlan.monthlyPrice > 0)
@@ -857,9 +979,10 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                   textColor: textColor,
                 ),
               Container(
-                  height: 1.5,
-                  color: borderColor.withAlpha(60),
-                  margin: const EdgeInsets.symmetric(vertical: 8)),
+                height: 1.5,
+                color: borderColor.withAlpha(60),
+                margin: const EdgeInsets.symmetric(vertical: 8),
+              ),
               _SummaryRow(
                 label: 'Total mensual',
                 value: '\$${_monthlyRecurring.toStringAsFixed(2)}/mes',
@@ -870,8 +993,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                 const SizedBox(height: 4),
                 _SummaryRow(
                   label: 'Descuento anual (-20%)',
-                  value:
-                      '\$${_monthlyWithDiscount.toStringAsFixed(2)}/mes',
+                  value: '\$${_monthlyWithDiscount.toStringAsFixed(2)}/mes',
                   textColor: textColor,
                   valueColor: AppColors.blue,
                   isSubtle: true,
@@ -899,19 +1021,23 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('TOTAL ESTIMADO',
-                        style: TextStyle(
-                            color: AppColors.white.withAlpha(200),
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12)),
+                    Text(
+                      'TOTAL ESTIMADO',
+                      style: TextStyle(
+                        color: AppColors.white.withAlpha(200),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       _billingCycle == BillingCycle.annual
                           ? 'Desarrollo + primer año'
                           : 'Desarrollo + primer mes',
                       style: TextStyle(
-                          color: AppColors.white.withAlpha(160),
-                          fontSize: 11),
+                        color: AppColors.white.withAlpha(160),
+                        fontSize: 11,
+                      ),
                     ),
                   ],
                 ),
@@ -919,9 +1045,10 @@ class _NewQuotationViewState extends State<NewQuotationView> {
               Text(
                 '\$${_totalEstimate.toStringAsFixed(2)}',
                 style: const TextStyle(
-                    color: AppColors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 26),
+                  color: AppColors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 26,
+                ),
               ),
             ],
           ),
@@ -939,8 +1066,8 @@ class _NewQuotationViewState extends State<NewQuotationView> {
       decoration: BoxDecoration(
         color: bgColor,
         border: Border(
-            top: BorderSide(
-                color: borderColor, width: AppColors.borderWidth)),
+          top: BorderSide(color: borderColor, width: AppColors.borderWidth),
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -951,14 +1078,21 @@ class _NewQuotationViewState extends State<NewQuotationView> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Estimado: ',
-                      style: TextStyle(
-                          color: textColor.withAlpha(160), fontSize: 13)),
-                  Text('\$${_totalEstimate.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                          color: AppColors.blue,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 16)),
+                  Text(
+                    'Estimado: ',
+                    style: TextStyle(
+                      color: textColor.withAlpha(160),
+                      fontSize: 13,
+                    ),
+                  ),
+                  Text(
+                    '\$${_totalEstimate.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: AppColors.blue,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -981,10 +1115,12 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                   label: _saving
                       ? ''
                       : (isSummary
-                          ? (_isEditing
-                              ? 'Guardar Cambios'
-                              : 'Guardar Cotización')
-                          : (_currentStep == 5 ? 'Ver Resumen' : 'Siguiente')),
+                            ? (_isEditing
+                                  ? 'Guardar Cambios'
+                                  : 'Guardar Cotización')
+                            : (_currentStep == 5
+                                  ? 'Ver Resumen'
+                                  : 'Siguiente')),
                   onTap: _saving ? null : (isSummary ? _save : _next),
                   filled: true,
                   borderColor: borderColor,
@@ -1000,8 +1136,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
     );
   }
 
-  bool get isDark =>
-      Theme.of(context).brightness == Brightness.dark;
+  bool get isDark => Theme.of(context).brightness == Brightness.dark;
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1051,8 +1186,8 @@ class _StepIndicator extends StatelessWidget {
               color: isDone
                   ? AppColors.blue
                   : (isActive
-                      ? AppColors.blue.withAlpha(20)
-                      : Colors.transparent),
+                        ? AppColors.blue.withAlpha(20)
+                        : Colors.transparent),
               shape: BoxShape.circle,
               border: Border.all(
                 color: isDone || isActive
@@ -1063,8 +1198,7 @@ class _StepIndicator extends StatelessWidget {
             ),
             child: Center(
               child: isDone
-                  ? const Icon(Icons.check,
-                      size: 16, color: AppColors.white)
+                  ? const Icon(Icons.check, size: 16, color: AppColors.white)
                   : Text(
                       '${step + 1}',
                       style: TextStyle(
@@ -1122,14 +1256,15 @@ class _IconPicker extends StatelessWidget {
                       : (isDark ? AppColors.grey800 : AppColors.grey100),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                      color: isNone ? AppColors.blue : borderColor.withAlpha(80),
-                      width: 2),
+                    color: isNone ? AppColors.blue : borderColor.withAlpha(80),
+                    width: 2,
+                  ),
                 ),
-                child: Icon(Icons.close,
-                    size: 20,
-                    color: isNone
-                        ? AppColors.white
-                        : borderColor.withAlpha(120)),
+                child: Icon(
+                  Icons.close,
+                  size: 20,
+                  color: isNone ? AppColors.white : borderColor.withAlpha(120),
+                ),
               ),
             );
           }
@@ -1147,16 +1282,19 @@ class _IconPicker extends StatelessWidget {
                     : (isDark ? AppColors.grey800 : AppColors.grey100),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                    color: isSelected
-                        ? AppColors.blue
-                        : borderColor.withAlpha(80),
-                    width: 2),
-              ),
-              child: Icon(icon,
-                  size: 24,
                   color: isSelected
-                      ? AppColors.white
-                      : (isDark ? AppColors.white : AppColors.black)),
+                      ? AppColors.blue
+                      : borderColor.withAlpha(80),
+                  width: 2,
+                ),
+              ),
+              child: Icon(
+                icon,
+                size: 24,
+                color: isSelected
+                    ? AppColors.white
+                    : (isDark ? AppColors.white : AppColors.black),
+              ),
             ),
           );
         },
@@ -1172,9 +1310,14 @@ class _StepTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(label,
-        style: TextStyle(
-            fontSize: 18, fontWeight: FontWeight.w800, color: textColor));
+    return Text(
+      label,
+      style: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w800,
+        color: textColor,
+      ),
+    );
   }
 }
 
@@ -1202,25 +1345,28 @@ class _NeuField extends StatelessWidget {
         border: Border.all(color: borderColor, width: AppColors.borderWidth),
         boxShadow: [
           BoxShadow(
-              color: borderColor, offset: const Offset(3, 3), blurRadius: 0),
+            color: borderColor,
+            offset: const Offset(3, 3),
+            blurRadius: 0,
+          ),
         ],
       ),
       child: TextField(
         controller: controller,
         onChanged: onChanged,
-        style: TextStyle(
-            color: isDark ? AppColors.white : AppColors.black),
+        style: TextStyle(color: isDark ? AppColors.white : AppColors.black),
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(
-            color:
-                (isDark ? AppColors.white : AppColors.black).withAlpha(120),
+            color: (isDark ? AppColors.white : AppColors.black).withAlpha(120),
           ),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
         ),
       ),
     );
@@ -1258,7 +1404,7 @@ class _ServiceCard extends StatelessWidget {
         children: [
           Container(
             width: 40,
-            height: 40,
+            height: 30,
             decoration: BoxDecoration(
               color: accentColor.withAlpha(30),
               borderRadius: BorderRadius.circular(10),
@@ -1269,19 +1415,23 @@ class _ServiceCard extends StatelessWidget {
           Text(
             customLabel ?? type.label,
             style: TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 13,
-                color: textColor),
+              fontWeight: FontWeight.w800,
+              fontSize: 13,
+              color: textColor,
+            ),
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           if (type != ServiceType.custom)
-            Text('\$${type.basePrice.toStringAsFixed(0)}',
-                style: TextStyle(
-                    color: AppColors.blue,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 12)),
+            Text(
+              '\$${type.basePrice.toStringAsFixed(0)}',
+              style: TextStyle(
+                color: AppColors.blue,
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
           if (selected)
             Padding(
               padding: const EdgeInsets.only(top: 2),
@@ -1333,31 +1483,43 @@ class _TierCard extends StatelessWidget {
               color: (accentColor ?? AppColors.blue).withAlpha(25),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon,
-                color: selected ? AppColors.blue : textColor.withAlpha(180),
-                size: 22),
+            child: Icon(
+              icon,
+              color: selected ? AppColors.blue : textColor.withAlpha(180),
+              size: 22,
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        color: textColor,
-                        fontSize: 15)),
-                Text(subtitle,
-                    style: TextStyle(
-                        color: textColor.withAlpha(150), fontSize: 12)),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: textColor,
+                    fontSize: 15,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: textColor.withAlpha(150),
+                    fontSize: 12,
+                  ),
+                ),
               ],
             ),
           ),
-          Text(price,
-              style: TextStyle(
-                  color: AppColors.blue,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 14)),
+          Text(
+            price,
+            style: TextStyle(
+              color: AppColors.blue,
+              fontWeight: FontWeight.w800,
+              fontSize: 14,
+            ),
+          ),
           const SizedBox(width: 10),
           _Radio(selected: selected, isDark: isDark),
         ],
@@ -1402,32 +1564,41 @@ class _CheckCard extends StatelessWidget {
               color: checked ? AppColors.blue : Colors.transparent,
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
-                  color: checked
-                      ? AppColors.blue
-                      : (isDark ? AppColors.white : AppColors.black),
-                  width: 2),
+                color: checked
+                    ? AppColors.blue
+                    : (isDark ? AppColors.white : AppColors.black),
+                width: 2,
+              ),
             ),
             child: checked
                 ? const Icon(Icons.check, size: 14, color: AppColors.white)
                 : null,
           ),
           const SizedBox(width: 14),
-          Icon(icon,
-              color: checked ? AppColors.blue : textColor.withAlpha(160),
-              size: 20),
+          Icon(
+            icon,
+            color: checked ? AppColors.blue : textColor.withAlpha(160),
+            size: 20,
+          ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(title,
-                style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: textColor,
-                    fontSize: 14)),
-          ),
-          Text(subtitle,
+            child: Text(
+              title,
               style: TextStyle(
-                  color: AppColors.blue,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13)),
+                fontWeight: FontWeight.w700,
+                color: textColor,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          Text(
+            subtitle,
+            style: TextStyle(
+              color: AppColors.blue,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
+          ),
         ],
       ),
     );
@@ -1448,8 +1619,9 @@ class _Radio extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-            color: selected ? AppColors.blue : borderColor.withAlpha(100),
-            width: 2),
+          color: selected ? AppColors.blue : borderColor.withAlpha(100),
+          width: 2,
+        ),
       ),
       child: selected
           ? Center(
@@ -1457,7 +1629,9 @@ class _Radio extends StatelessWidget {
                 width: 10,
                 height: 10,
                 decoration: const BoxDecoration(
-                    color: AppColors.blue, shape: BoxShape.circle),
+                  color: AppColors.blue,
+                  shape: BoxShape.circle,
+                ),
               ),
             )
           : null,
@@ -1496,9 +1670,10 @@ class _NavBtn extends StatelessWidget {
           border: Border.all(color: borderColor, width: AppColors.borderWidth),
           boxShadow: [
             BoxShadow(
-                color: borderColor,
-                offset: const Offset(3, 3),
-                blurRadius: 0),
+              color: borderColor,
+              offset: const Offset(3, 3),
+              blurRadius: 0,
+            ),
           ],
         ),
         child: Center(
@@ -1507,13 +1682,18 @@ class _NavBtn extends StatelessWidget {
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(
-                      color: AppColors.white, strokeWidth: 2),
+                    color: AppColors.white,
+                    strokeWidth: 2,
+                  ),
                 )
-              : Text(label,
+              : Text(
+                  label,
                   style: TextStyle(
-                      color: textColor,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 15)),
+                    color: textColor,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                  ),
+                ),
         ),
       ),
     );
@@ -1544,21 +1724,23 @@ class _SummaryRow extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text(label,
-                style: TextStyle(
-                  color: isSubtle ? textColor.withAlpha(140) : textColor,
-                  fontWeight:
-                      isBold ? FontWeight.w800 : FontWeight.w500,
-                  fontSize: isSubtle ? 12 : (isBold ? 15 : 13),
-                )),
-          ),
-          Text(value,
+            child: Text(
+              label,
               style: TextStyle(
-                  color: valueColor ??
-                      (isBold ? AppColors.blue : textColor),
-                  fontWeight:
-                      isBold ? FontWeight.w800 : FontWeight.w700,
-                  fontSize: isBold ? 15 : 13)),
+                color: isSubtle ? textColor.withAlpha(140) : textColor,
+                fontWeight: isBold ? FontWeight.w800 : FontWeight.w500,
+                fontSize: isSubtle ? 12 : (isBold ? 15 : 13),
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: valueColor ?? (isBold ? AppColors.blue : textColor),
+              fontWeight: isBold ? FontWeight.w800 : FontWeight.w700,
+              fontSize: isBold ? 15 : 13,
+            ),
+          ),
         ],
       ),
     );
