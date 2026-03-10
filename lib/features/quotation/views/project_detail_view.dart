@@ -72,28 +72,31 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
                   ),
                   // Edit button
                   GestureDetector(
-                    onTap: () => context.go('/quotation',
-                        extra: widget.projectId),
+                    onTap: () =>
+                        context.go('/quotation', extra: widget.projectId),
                     child: Container(
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.grey800
-                            : AppColors.grey100,
+                        color: isDark ? AppColors.grey800 : AppColors.grey100,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                            color: borderColor,
-                            width: AppColors.borderWidth),
+                          color: borderColor,
+                          width: AppColors.borderWidth,
+                        ),
                         boxShadow: [
                           BoxShadow(
-                              color: borderColor,
-                              offset: const Offset(3, 3),
-                              blurRadius: 0),
+                            color: borderColor,
+                            offset: const Offset(3, 3),
+                            blurRadius: 0,
+                          ),
                         ],
                       ),
-                      child: Icon(Icons.edit_outlined,
-                          size: 18, color: textColor),
+                      child: Icon(
+                        Icons.edit_outlined,
+                        size: 18,
+                        color: textColor,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -107,17 +110,22 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
                         color: AppColors.blue,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                            color: borderColor,
-                            width: AppColors.borderWidth),
+                          color: borderColor,
+                          width: AppColors.borderWidth,
+                        ),
                         boxShadow: [
                           BoxShadow(
-                              color: borderColor,
-                              offset: const Offset(3, 3),
-                              blurRadius: 0),
+                            color: borderColor,
+                            offset: const Offset(3, 3),
+                            blurRadius: 0,
+                          ),
                         ],
                       ),
-                      child: const Icon(Icons.receipt_long_outlined,
-                          size: 18, color: AppColors.white),
+                      child: const Icon(
+                        Icons.receipt_long_outlined,
+                        size: 18,
+                        color: AppColors.white,
+                      ),
                     ),
                   ),
                 ],
@@ -128,10 +136,13 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : _project == null
-                      ? Center(
-                          child: Text('Proyecto no encontrado',
-                              style: TextStyle(color: textColor)))
-                      : _buildContent(isDark, textColor, borderColor),
+                  ? Center(
+                      child: Text(
+                        'Proyecto no encontrado',
+                        style: TextStyle(color: textColor),
+                      ),
+                    )
+                  : _buildContent(isDark, textColor, borderColor),
             ),
           ],
         ),
@@ -234,13 +245,15 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
                       color: AppColors.blue,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                          color: borderColor,
-                          width: AppColors.borderWidth),
+                        color: borderColor,
+                        width: AppColors.borderWidth,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                            color: borderColor,
-                            offset: const Offset(3, 3),
-                            blurRadius: 0),
+                          color: borderColor,
+                          offset: const Offset(3, 3),
+                          blurRadius: 0,
+                        ),
                       ],
                     ),
                     child: const Center(
@@ -268,20 +281,22 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
                       color: Colors.transparent,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                          color: borderColor,
-                          width: AppColors.borderWidth),
+                        color: borderColor,
+                        width: AppColors.borderWidth,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                            color: borderColor,
-                            offset: const Offset(3, 3),
-                            blurRadius: 0),
+                          color: borderColor,
+                          offset: const Offset(3, 3),
+                          blurRadius: 0,
+                        ),
                       ],
                     ),
                     child: Center(
                       child: Text(
                         'Enviar por Correo',
                         style: TextStyle(
-                          color: textColor,
+                          color: Colors.white,
                           fontWeight: FontWeight.w800,
                           fontSize: 15,
                         ),
@@ -325,9 +340,9 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
       );
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al generar PDF: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error al generar PDF: $e')));
       }
     }
   }
@@ -352,12 +367,14 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
     buffer.writeln('Subtotal: \$${project.totalEstimate.toStringAsFixed(2)}');
     if (ivaPercent > 0) {
       buffer.writeln(
-          'IVA ${ivaPercent.toStringAsFixed(0)}%: \$${ivaAmount.toStringAsFixed(2)}');
-      buffer.writeln(
-          'Total con IVA: \$${totalWithIva.toStringAsFixed(2)}');
+        'IVA ${ivaPercent.toStringAsFixed(0)}%: \$${ivaAmount.toStringAsFixed(2)}',
+      );
+      buffer.writeln('Total con IVA: \$${totalWithIva.toStringAsFixed(2)}');
     }
     buffer.writeln();
-    buffer.writeln('Este documento es una estimación. Los precios finales pueden variar.');
+    buffer.writeln(
+      'Este documento es una estimación. Los precios finales pueden variar.',
+    );
     buffer.writeln();
     buffer.writeln('Atentamente,');
     buffer.writeln(settings.businessInfo.companyName);
@@ -396,7 +413,9 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 5),
+                      horizontal: 12,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: statusColor,
                       borderRadius: BorderRadius.circular(8),
@@ -417,7 +436,9 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
                   Text(
                     _formatDate(project.createdAt),
                     style: TextStyle(
-                        color: textColor.withAlpha(140), fontSize: 12),
+                      color: textColor.withAlpha(140),
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -433,8 +454,7 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
               const SizedBox(height: 4),
               Text(
                 'Cliente: ${project.clientName}',
-                style: TextStyle(
-                    color: textColor.withAlpha(180), fontSize: 14),
+                style: TextStyle(color: textColor.withAlpha(180), fontSize: 14),
               ),
               if (project.description != null &&
                   project.description!.isNotEmpty) ...[
@@ -442,7 +462,9 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
                 Text(
                   project.description!,
                   style: TextStyle(
-                      color: textColor.withAlpha(160), fontSize: 13),
+                    color: textColor.withAlpha(160),
+                    fontSize: 13,
+                  ),
                 ),
               ],
             ],
@@ -453,7 +475,13 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
         // ── Config-based detail OR legacy line items ──
         if (config != null)
           _buildConfigDetail(
-              config, project, ivaPercent, isDark, textColor, borderColor)
+            config,
+            project,
+            ivaPercent,
+            isDark,
+            textColor,
+            borderColor,
+          )
         else
           _buildLegacyDetail(project, isDark, textColor, borderColor),
       ],
@@ -471,8 +499,9 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
   ) {
     final serviceType = config.serviceTypeEnum;
     final serviceLabel = config.serviceLabel;
-    final serviceColor =
-        serviceType != null ? Color(serviceType.colorValue) : AppColors.blue;
+    final serviceColor = serviceType != null
+        ? Color(serviceType.colorValue)
+        : AppColors.blue;
 
     final ivaAmount = project.totalEstimate * ivaPercent / 100;
     final totalWithIva = project.totalEstimate + ivaAmount;
@@ -491,22 +520,32 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
                   color: serviceColor.withAlpha(30),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(serviceType?.icon ?? Icons.code,
-                    color: serviceColor, size: 24),
+                child: Icon(
+                  serviceType?.icon ?? Icons.code,
+                  color: serviceColor,
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Tipo de Servicio',
-                        style: TextStyle(
-                            color: textColor.withAlpha(150), fontSize: 11)),
-                    Text(serviceLabel,
-                        style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            color: textColor,
-                            fontSize: 16)),
+                    Text(
+                      'Tipo de Servicio',
+                      style: TextStyle(
+                        color: textColor.withAlpha(150),
+                        fontSize: 11,
+                      ),
+                    ),
+                    Text(
+                      serviceLabel,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: textColor,
+                        fontSize: 16,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -529,29 +568,35 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Plataforma y Facturación',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: textColor,
-                      fontSize: 15)),
+              Text(
+                'Plataforma y Facturación',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: textColor,
+                  fontSize: 15,
+                ),
+              ),
               const SizedBox(height: 12),
               _DetailRow(
-                  icon: Icons.cloud,
-                  label: 'Plan',
-                  value:
-                      '${config.platformTierEnum.label} (\$${config.platformTierEnum.monthlyHosting.toStringAsFixed(0)}/mes)',
-                  textColor: textColor),
+                icon: Icons.cloud,
+                label: 'Plan',
+                value:
+                    '${config.platformTierEnum.label} (\$${config.platformTierEnum.monthlyHosting.toStringAsFixed(0)}/mes)',
+                textColor: textColor,
+              ),
               _DetailRow(
-                  icon: Icons.calendar_today,
-                  label: 'Ciclo',
-                  value: config.billingCycleEnum.label,
-                  textColor: textColor),
+                icon: Icons.calendar_today,
+                label: 'Ciclo',
+                value: config.billingCycleEnum.label,
+                textColor: textColor,
+              ),
               if (config.mobilePlatformEnum != null)
                 _DetailRow(
-                    icon: Icons.phone_iphone,
-                    label: 'Plataforma',
-                    value: config.mobilePlatformEnum!.label,
-                    textColor: textColor),
+                  icon: Icons.phone_iphone,
+                  label: 'Plataforma',
+                  value: config.mobilePlatformEnum!.label,
+                  textColor: textColor,
+                ),
             ],
           ),
         ),
@@ -564,18 +609,23 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Funcionalidades',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        color: textColor,
-                        fontSize: 15)),
+                Text(
+                  'Funcionalidades',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: textColor,
+                    fontSize: 15,
+                  ),
+                ),
                 const SizedBox(height: 10),
-                ...config.featureEnums.map((f) => _DetailRow(
-                      icon: f.icon,
-                      label: f.label,
-                      value: '\$${f.price.toStringAsFixed(0)}',
-                      textColor: textColor,
-                    )),
+                ...config.featureEnums.map(
+                  (f) => _DetailRow(
+                    icon: f.icon,
+                    label: f.label,
+                    value: '\$${f.price.toStringAsFixed(0)}',
+                    textColor: textColor,
+                  ),
+                ),
               ],
             ),
           ),
@@ -602,18 +652,23 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Adicionales',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        color: textColor,
-                        fontSize: 15)),
+                Text(
+                  'Adicionales',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: textColor,
+                    fontSize: 15,
+                  ),
+                ),
                 const SizedBox(height: 10),
-                ...config.extraEnums.map((e) => _DetailRow(
-                      icon: e.icon,
-                      label: e.label,
-                      value: '\$${e.price.toStringAsFixed(0)}',
-                      textColor: textColor,
-                    )),
+                ...config.extraEnums.map(
+                  (e) => _DetailRow(
+                    icon: e.icon,
+                    label: e.label,
+                    value: '\$${e.price.toStringAsFixed(0)}',
+                    textColor: textColor,
+                  ),
+                ),
               ],
             ),
           ),
@@ -627,11 +682,14 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Soporte',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        color: textColor,
-                        fontSize: 15)),
+                Text(
+                  'Soporte',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: textColor,
+                    fontSize: 15,
+                  ),
+                ),
                 const SizedBox(height: 10),
                 _DetailRow(
                   icon: config.supportPlanEnum.icon,
@@ -643,7 +701,9 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
                 Text(
                   config.supportPlanEnum.description,
                   style: TextStyle(
-                      color: textColor.withAlpha(140), fontSize: 12),
+                    color: textColor.withAlpha(140),
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
@@ -658,51 +718,62 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Desglose de Precios',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: textColor,
-                      fontSize: 15)),
+              Text(
+                'Desglose de Precios',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: textColor,
+                  fontSize: 15,
+                ),
+              ),
               const SizedBox(height: 12),
               _PriceRow(
-                  label: 'Desarrollo base',
-                  value: '\$${config.baseProject.toStringAsFixed(2)}',
-                  textColor: textColor),
+                label: 'Desarrollo base',
+                value: '\$${config.baseProject.toStringAsFixed(2)}',
+                textColor: textColor,
+              ),
               if (config.featuresTotal > 0)
                 _PriceRow(
-                    label: 'Funcionalidades',
-                    value: '\$${config.featuresTotal.toStringAsFixed(2)}',
-                    textColor: textColor),
+                  label: 'Funcionalidades',
+                  value: '\$${config.featuresTotal.toStringAsFixed(2)}',
+                  textColor: textColor,
+                ),
               if (config.extrasTotal > 0)
                 _PriceRow(
-                    label: 'Adicionales',
-                    value: '\$${config.extrasTotal.toStringAsFixed(2)}',
-                    textColor: textColor),
-              Container(
-                  height: 1,
-                  color: borderColor.withAlpha(40),
-                  margin: const EdgeInsets.symmetric(vertical: 8)),
-              _PriceRow(
-                  label: 'Subtotal desarrollo',
-                  value: '\$${config.developmentTotal.toStringAsFixed(2)}',
+                  label: 'Adicionales',
+                  value: '\$${config.extrasTotal.toStringAsFixed(2)}',
                   textColor: textColor,
-                  isBold: true),
+                ),
+              Container(
+                height: 1,
+                color: borderColor.withAlpha(40),
+                margin: const EdgeInsets.symmetric(vertical: 8),
+              ),
+              _PriceRow(
+                label: 'Subtotal desarrollo',
+                value: '\$${config.developmentTotal.toStringAsFixed(2)}',
+                textColor: textColor,
+                isBold: true,
+              ),
               const SizedBox(height: 8),
               _PriceRow(
-                  label: 'Costo mensual',
-                  value: '\$${config.monthlyRecurring.toStringAsFixed(2)}/mes',
-                  textColor: textColor),
+                label: 'Costo mensual',
+                value: '\$${config.monthlyRecurring.toStringAsFixed(2)}/mes',
+                textColor: textColor,
+              ),
               if (config.billingCycleEnum == BillingCycle.annual)
                 _PriceRow(
-                    label: 'Con descuento anual',
-                    value:
-                        '\$${config.monthlyWithDiscount.toStringAsFixed(2)}/mes',
-                    textColor: textColor,
-                    valueColor: AppColors.blue),
+                  label: 'Con descuento anual',
+                  value:
+                      '\$${config.monthlyWithDiscount.toStringAsFixed(2)}/mes',
+                  textColor: textColor,
+                  valueColor: AppColors.blue,
+                ),
               Container(
-                  height: 2,
-                  color: borderColor,
-                  margin: const EdgeInsets.symmetric(vertical: 8)),
+                height: 2,
+                color: borderColor,
+                margin: const EdgeInsets.symmetric(vertical: 8),
+              ),
 
               // Subtotal (= project.totalEstimate with multiplier)
               _PriceRow(
@@ -722,9 +793,10 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
                   valueColor: AppColors.blue,
                 ),
                 Container(
-                    height: 2,
-                    color: AppColors.blue,
-                    margin: const EdgeInsets.symmetric(vertical: 8)),
+                  height: 2,
+                  color: AppColors.blue,
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                ),
               ],
 
               // TOTAL
@@ -734,17 +806,19 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
                     child: Text(
                       'TOTAL',
                       style: TextStyle(
-                          color: textColor,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 18),
+                        color: textColor,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 18,
+                      ),
                     ),
                   ),
                   Text(
                     '\$${(ivaPercent > 0 ? totalWithIva : project.totalEstimate).toStringAsFixed(2)}',
                     style: const TextStyle(
-                        color: AppColors.blue,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 22),
+                      color: AppColors.blue,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 22,
+                    ),
                   ),
                 ],
               ),
@@ -757,7 +831,11 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
 
   // ── Legacy line-item detail ─────────────────────────────────────────
   Widget _buildLegacyDetail(
-      Project project, bool isDark, Color textColor, Color borderColor) {
+    Project project,
+    bool isDark,
+    Color textColor,
+    Color borderColor,
+  ) {
     return Column(
       children: [
         if (project.lines.isNotEmpty)
@@ -766,64 +844,79 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Servicios',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        color: textColor,
-                        fontSize: 15)),
+                Text(
+                  'Servicios',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: textColor,
+                    fontSize: 15,
+                  ),
+                ),
                 const SizedBox(height: 12),
-                ...project.lines.map((line) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(line.serviceName,
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w700,
-                                        color: textColor,
-                                        fontSize: 14)),
-                                Text(
-                                  '${line.categoryName} - ${line.quantity.toStringAsFixed(line.quantity % 1 == 0 ? 0 : 1)} ${line.unit}(s)',
-                                  style: TextStyle(
-                                      color: textColor.withAlpha(150),
-                                      fontSize: 12),
+                ...project.lines.map(
+                  (line) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                line.serviceName,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  color: textColor,
+                                  fontSize: 14,
                                 ),
-                              ],
-                            ),
+                              ),
+                              Text(
+                                '${line.categoryName} - ${line.quantity.toStringAsFixed(line.quantity % 1 == 0 ? 0 : 1)} ${line.unit}(s)',
+                                style: TextStyle(
+                                  color: textColor.withAlpha(150),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
                           ),
-                          Text(
-                            '\$${line.subtotal.toStringAsFixed(2)}',
-                            style: TextStyle(
-                                color: AppColors.blue,
-                                fontWeight: FontWeight.w700),
+                        ),
+                        Text(
+                          '\$${line.subtotal.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            color: AppColors.blue,
+                            fontWeight: FontWeight.w700,
                           ),
-                        ],
-                      ),
-                    )),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
                 Container(
-                    height: 2,
-                    color: borderColor,
-                    margin: const EdgeInsets.symmetric(vertical: 8)),
+                  height: 2,
+                  color: borderColor,
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                ),
                 Row(
                   children: [
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('TOTAL',
-                              style: TextStyle(
-                                  color: textColor,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 18)),
+                          Text(
+                            'TOTAL',
+                            style: TextStyle(
+                              color: textColor,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 18,
+                            ),
+                          ),
                           if (project.multiplierUsed != 1.0)
                             Text(
                               'Factor: x${project.multiplierUsed.toStringAsFixed(1)}',
                               style: TextStyle(
-                                  color: textColor.withAlpha(150),
-                                  fontSize: 12),
+                                color: textColor.withAlpha(150),
+                                fontSize: 12,
+                              ),
                             ),
                         ],
                       ),
@@ -831,9 +924,10 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
                     Text(
                       '\$${project.totalEstimate.toStringAsFixed(2)}',
                       style: const TextStyle(
-                          color: AppColors.blue,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 22),
+                        color: AppColors.blue,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 22,
+                      ),
                     ),
                   ],
                 ),
@@ -846,18 +940,22 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
             child: Row(
               children: [
                 Expanded(
-                  child: Text('TOTAL',
-                      style: TextStyle(
-                          color: textColor,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 18)),
+                  child: Text(
+                    'TOTAL',
+                    style: TextStyle(
+                      color: textColor,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                    ),
+                  ),
                 ),
                 Text(
                   '\$${project.totalEstimate.toStringAsFixed(2)}',
                   style: const TextStyle(
-                      color: AppColors.blue,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 22),
+                    color: AppColors.blue,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 22,
+                  ),
                 ),
               ],
             ),
@@ -942,17 +1040,23 @@ class _DetailRow extends StatelessWidget {
           Icon(icon, size: 18, color: AppColors.blue),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(label,
-                style: TextStyle(
-                    color: textColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13)),
-          ),
-          Text(value,
+            child: Text(
+              label,
               style: TextStyle(
-                  color: textColor.withAlpha(180),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13)),
+                color: textColor,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: textColor.withAlpha(180),
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
         ],
       ),
     );
@@ -981,17 +1085,23 @@ class _PriceRow extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text(label,
-                style: TextStyle(
-                    color: textColor,
-                    fontWeight: isBold ? FontWeight.w800 : FontWeight.w500,
-                    fontSize: isBold ? 15 : 13)),
-          ),
-          Text(value,
+            child: Text(
+              label,
               style: TextStyle(
-                  color: valueColor ?? (isBold ? AppColors.blue : textColor),
-                  fontWeight: isBold ? FontWeight.w800 : FontWeight.w700,
-                  fontSize: isBold ? 15 : 13)),
+                color: textColor,
+                fontWeight: isBold ? FontWeight.w800 : FontWeight.w500,
+                fontSize: isBold ? 15 : 13,
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: valueColor ?? (isBold ? AppColors.blue : textColor),
+              fontWeight: isBold ? FontWeight.w800 : FontWeight.w700,
+              fontSize: isBold ? 15 : 13,
+            ),
+          ),
         ],
       ),
     );
