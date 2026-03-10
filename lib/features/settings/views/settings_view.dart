@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../app/theme.dart';
+import '../../../models/business_info.dart';
 import '../../../providers/settings_provider.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../shared/widgets/neu_box.dart';
@@ -214,6 +215,24 @@ class SettingsView extends StatelessWidget {
                       ],
                     ),
                   ),
+
+                  // ── Business Info Section ──────────────────────────────
+                  const SizedBox(height: 24),
+                  _SectionTitle(
+                      label: 'Información del Negocio', textColor: textColor),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Esta información aparecerá en las notas de venta generadas.',
+                    style: TextStyle(
+                        color: textColor.withAlpha(160), fontSize: 13),
+                  ),
+                  const SizedBox(height: 12),
+                  _BusinessInfoForm(
+                    initial: settingsProvider.businessInfo,
+                    isDark: isDark,
+                    textColor: textColor,
+                    borderColor: borderColor,
+                  ),
                 ],
               ),
             ),
@@ -223,6 +242,191 @@ class SettingsView extends StatelessWidget {
     );
   }
 }
+
+// ── Business Info Form ──────────────────────────────────────────────────────
+
+class _BusinessInfoForm extends StatefulWidget {
+  const _BusinessInfoForm({
+    required this.initial,
+    required this.isDark,
+    required this.textColor,
+    required this.borderColor,
+  });
+
+  final BusinessInfo initial;
+  final bool isDark;
+  final Color textColor;
+  final Color borderColor;
+
+  @override
+  State<_BusinessInfoForm> createState() => _BusinessInfoFormState();
+}
+
+class _BusinessInfoFormState extends State<_BusinessInfoForm> {
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _emailCtrl;
+  late final TextEditingController _phoneCtrl;
+  late final TextEditingController _addressCtrl;
+  late final TextEditingController _websiteCtrl;
+  late final TextEditingController _ivaCtrl;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameCtrl =
+        TextEditingController(text: widget.initial.companyName);
+    _emailCtrl = TextEditingController(text: widget.initial.email);
+    _phoneCtrl = TextEditingController(text: widget.initial.phone);
+    _addressCtrl = TextEditingController(text: widget.initial.address);
+    _websiteCtrl = TextEditingController(text: widget.initial.website);
+    _ivaCtrl = TextEditingController(
+        text: widget.initial.ivaPercent == 0
+            ? ''
+            : widget.initial.ivaPercent.toStringAsFixed(
+                widget.initial.ivaPercent % 1 == 0 ? 0 : 2));
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _emailCtrl.dispose();
+    _phoneCtrl.dispose();
+    _addressCtrl.dispose();
+    _websiteCtrl.dispose();
+    _ivaCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (_saving) return;
+    setState(() => _saving = true);
+
+    final info = BusinessInfo(
+      companyName: _nameCtrl.text.trim().isEmpty
+          ? 'Ionos Hub'
+          : _nameCtrl.text.trim(),
+      email: _emailCtrl.text.trim(),
+      phone: _phoneCtrl.text.trim(),
+      address: _addressCtrl.text.trim(),
+      website: _websiteCtrl.text.trim(),
+      ivaPercent:
+          (int.tryParse(_ivaCtrl.text.trim()) ?? 0).toDouble(),
+    );
+
+    await context.read<SettingsProvider>().saveBusinessInfo(info);
+
+    if (mounted) {
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Información guardada')),
+      );
+    }
+  }
+
+  Widget _buildField(
+      TextEditingController ctrl, String hint,
+      {TextInputType keyboardType = TextInputType.text}) {
+    final borderColor = widget.borderColor;
+    final isDark = widget.isDark;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.grey800 : AppColors.grey100,
+        border:
+            Border.all(color: borderColor, width: AppColors.borderWidth),
+        boxShadow: [
+          BoxShadow(
+              color: borderColor,
+              offset: const Offset(3, 3),
+              blurRadius: 0),
+        ],
+      ),
+      child: TextField(
+        controller: ctrl,
+        keyboardType: keyboardType,
+        style: TextStyle(
+            color: isDark ? AppColors.white : AppColors.black),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(
+              color: (isDark ? AppColors.white : AppColors.black)
+                  .withAlpha(120)),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16, vertical: 14),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final borderColor = widget.borderColor;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildField(_nameCtrl, 'Nombre de la empresa (ej. Ionos Hub)'),
+        const SizedBox(height: 10),
+        _buildField(_emailCtrl, 'Correo electrónico',
+            keyboardType: TextInputType.emailAddress),
+        const SizedBox(height: 10),
+        _buildField(_phoneCtrl, 'Teléfono',
+            keyboardType: TextInputType.phone),
+        const SizedBox(height: 10),
+        _buildField(_addressCtrl, 'Dirección'),
+        const SizedBox(height: 10),
+        _buildField(_websiteCtrl, 'Sitio web',
+            keyboardType: TextInputType.url),
+        const SizedBox(height: 10),
+        _buildField(_ivaCtrl, 'IVA % (0 = sin IVA)',
+            keyboardType: TextInputType.number),
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: _save,
+          child: Container(
+            height: 50,
+            decoration: BoxDecoration(
+              color: AppColors.blue,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                  color: borderColor, width: AppColors.borderWidth),
+              boxShadow: [
+                BoxShadow(
+                    color: borderColor,
+                    offset: const Offset(3, 3),
+                    blurRadius: 0),
+              ],
+            ),
+            child: Center(
+              child: _saving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                          color: AppColors.white, strokeWidth: 2),
+                    )
+                  : const Text(
+                      'Guardar Información',
+                      style: TextStyle(
+                        color: AppColors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                      ),
+                    ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+}
+
+// ── Section Title ───────────────────────────────────────────────────────────
 
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle({required this.label, required this.textColor});

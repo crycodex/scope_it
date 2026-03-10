@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:printing/printing.dart';
+import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../app/theme.dart';
 import '../../../database/database_helper.dart';
 import '../../../models/project.dart';
 import '../../../models/quotation_config.dart';
+import '../../../providers/settings_provider.dart';
+import '../../../services/pdf_service.dart';
 import '../../../shared/widgets/neu_box.dart';
 
 class ProjectDetailView extends StatefulWidget {
@@ -91,6 +96,30 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
                           size: 18, color: textColor),
                     ),
                   ),
+                  const SizedBox(width: 8),
+                  // Sales note button
+                  GestureDetector(
+                    onTap: () => _showSalesNoteOptions(context),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.blue,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: borderColor,
+                            width: AppColors.borderWidth),
+                        boxShadow: [
+                          BoxShadow(
+                              color: borderColor,
+                              offset: const Offset(3, 3),
+                              blurRadius: 0),
+                        ],
+                      ),
+                      child: const Icon(Icons.receipt_long_outlined,
+                          size: 18, color: AppColors.white),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -110,10 +139,249 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
     );
   }
 
+  void _showSalesNoteOptions(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.white : AppColors.black;
+    final borderColor = isDark ? AppColors.white : AppColors.black;
+    final bgColor = isDark ? AppColors.grey900 : AppColors.white;
+
+    final project = _project;
+    if (project == null) return;
+
+    final config = project.quotationConfig;
+    final settings = context.read<SettingsProvider>();
+    final ivaPercent = settings.ivaPercent;
+    final ivaAmount = project.totalEstimate * ivaPercent / 100;
+    final totalWithIva = project.totalEstimate + ivaAmount;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: bgColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        side: BorderSide(color: borderColor, width: AppColors.borderWidth),
+      ),
+      builder: (sheetCtx) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: borderColor.withAlpha(80),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Nota de Venta',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: textColor,
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (config == null) ...[
+                Text(
+                  'Este proyecto no tiene una cotización configurada.',
+                  style: TextStyle(color: textColor.withAlpha(160)),
+                ),
+              ] else ...[
+                // Totals preview
+                _BottomSheetRow(
+                  label: 'Subtotal',
+                  value: '\$${project.totalEstimate.toStringAsFixed(2)}',
+                  textColor: textColor,
+                ),
+                if (ivaPercent > 0) ...[
+                  _BottomSheetRow(
+                    label: 'IVA ${ivaPercent.toStringAsFixed(0)}%',
+                    value: '\$${ivaAmount.toStringAsFixed(2)}',
+                    textColor: AppColors.blue,
+                    valueColor: AppColors.blue,
+                  ),
+                  Container(
+                    height: 1.5,
+                    color: borderColor.withAlpha(60),
+                    margin: const EdgeInsets.symmetric(vertical: 6),
+                  ),
+                  _BottomSheetRow(
+                    label: 'TOTAL con IVA',
+                    value: '\$${totalWithIva.toStringAsFixed(2)}',
+                    textColor: textColor,
+                    isBold: true,
+                    valueColor: AppColors.blue,
+                  ),
+                ],
+                const SizedBox(height: 16),
+                // Ver / Compartir PDF button
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(sheetCtx).pop();
+                    _generateAndSharePdf(context);
+                  },
+                  child: Container(
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: AppColors.blue,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                          color: borderColor,
+                          width: AppColors.borderWidth),
+                      boxShadow: [
+                        BoxShadow(
+                            color: borderColor,
+                            offset: const Offset(3, 3),
+                            blurRadius: 0),
+                      ],
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Ver / Compartir PDF',
+                        style: TextStyle(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                // Enviar por Correo button
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(sheetCtx).pop();
+                    _sendEmail(context);
+                  },
+                  child: Container(
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                          color: borderColor,
+                          width: AppColors.borderWidth),
+                      boxShadow: [
+                        BoxShadow(
+                            color: borderColor,
+                            offset: const Offset(3, 3),
+                            blurRadius: 0),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Enviar por Correo',
+                        style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _generateAndSharePdf(BuildContext context) async {
+    final project = _project;
+    if (project == null) return;
+    final config = project.quotationConfig;
+    if (config == null) return;
+
+    final settings = context.read<SettingsProvider>();
+    final businessInfo = settings.businessInfo;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Generando PDF...'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    try {
+      final pdfBytes = await PdfService.generateSalesNote(
+        project: project,
+        config: config,
+        businessInfo: businessInfo,
+      );
+      await Printing.sharePdf(
+        bytes: pdfBytes,
+        filename: 'nota_venta_${project.name}.pdf',
+      );
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al generar PDF: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _sendEmail(BuildContext context) async {
+    final project = _project;
+    if (project == null) return;
+
+    final settings = context.read<SettingsProvider>();
+    final ivaPercent = settings.ivaPercent;
+    final ivaAmount = project.totalEstimate * ivaPercent / 100;
+    final totalWithIva = project.totalEstimate + ivaAmount;
+
+    final subject = Uri.encodeComponent('Nota de Venta - ${project.name}');
+
+    final buffer = StringBuffer();
+    buffer.writeln('Estimado cliente,');
+    buffer.writeln();
+    buffer.writeln('Proyecto: ${project.name}');
+    buffer.writeln('Cliente: ${project.clientName}');
+    buffer.writeln();
+    buffer.writeln('Subtotal: \$${project.totalEstimate.toStringAsFixed(2)}');
+    if (ivaPercent > 0) {
+      buffer.writeln(
+          'IVA ${ivaPercent.toStringAsFixed(0)}%: \$${ivaAmount.toStringAsFixed(2)}');
+      buffer.writeln(
+          'Total con IVA: \$${totalWithIva.toStringAsFixed(2)}');
+    }
+    buffer.writeln();
+    buffer.writeln('Este documento es una estimación. Los precios finales pueden variar.');
+    buffer.writeln();
+    buffer.writeln('Atentamente,');
+    buffer.writeln(settings.businessInfo.companyName);
+
+    final body = Uri.encodeComponent(buffer.toString());
+    final uri = Uri.parse('mailto:?subject=$subject&body=$body');
+
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No se pudo abrir el correo: $e')),
+        );
+      }
+    }
+  }
+
   Widget _buildContent(bool isDark, Color textColor, Color borderColor) {
     final project = _project!;
     final config = project.quotationConfig;
     final statusColor = Color(project.status.colorValue);
+    final settings = context.read<SettingsProvider>();
+    final ivaPercent = settings.ivaPercent;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
@@ -184,7 +452,8 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
 
         // ── Config-based detail OR legacy line items ──
         if (config != null)
-          _buildConfigDetail(config, isDark, textColor, borderColor)
+          _buildConfigDetail(
+              config, project, ivaPercent, isDark, textColor, borderColor)
         else
           _buildLegacyDetail(project, isDark, textColor, borderColor),
       ],
@@ -193,11 +462,20 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
 
   // ── New quotation config detail ─────────────────────────────────────
   Widget _buildConfigDetail(
-      QuotationConfig config, bool isDark, Color textColor, Color borderColor) {
+    QuotationConfig config,
+    Project project,
+    double ivaPercent,
+    bool isDark,
+    Color textColor,
+    Color borderColor,
+  ) {
     final serviceType = config.serviceTypeEnum;
     final serviceLabel = config.serviceLabel;
     final serviceColor =
         serviceType != null ? Color(serviceType.colorValue) : AppColors.blue;
+
+    final ivaAmount = project.totalEstimate * ivaPercent / 100;
+    final totalWithIva = project.totalEstimate + ivaAmount;
 
     return Column(
       children: [
@@ -425,6 +703,31 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
                   height: 2,
                   color: borderColor,
                   margin: const EdgeInsets.symmetric(vertical: 8)),
+
+              // Subtotal (= project.totalEstimate with multiplier)
+              _PriceRow(
+                label: 'Subtotal',
+                value: '\$${project.totalEstimate.toStringAsFixed(2)}',
+                textColor: textColor,
+                isBold: true,
+              ),
+
+              // IVA rows
+              if (ivaPercent > 0) ...[
+                const SizedBox(height: 4),
+                _PriceRow(
+                  label: 'IVA ${ivaPercent.toStringAsFixed(0)}%',
+                  value: '\$${ivaAmount.toStringAsFixed(2)}',
+                  textColor: AppColors.blue,
+                  valueColor: AppColors.blue,
+                ),
+                Container(
+                    height: 2,
+                    color: AppColors.blue,
+                    margin: const EdgeInsets.symmetric(vertical: 8)),
+              ],
+
+              // TOTAL
               Row(
                 children: [
                   Expanded(
@@ -437,7 +740,7 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
                     ),
                   ),
                   Text(
-                    '\$${config.totalEstimate.toStringAsFixed(2)}',
+                    '\$${(ivaPercent > 0 ? totalWithIva : project.totalEstimate).toStringAsFixed(2)}',
                     style: const TextStyle(
                         color: AppColors.blue,
                         fontWeight: FontWeight.w800,
@@ -571,6 +874,51 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
 // ═══════════════════════════════════════════════════════════════════════
 // PRIVATE WIDGETS
 // ═══════════════════════════════════════════════════════════════════════
+
+class _BottomSheetRow extends StatelessWidget {
+  const _BottomSheetRow({
+    required this.label,
+    required this.value,
+    required this.textColor,
+    this.valueColor,
+    this.isBold = false,
+  });
+
+  final String label;
+  final String value;
+  final Color textColor;
+  final Color? valueColor;
+  final bool isBold;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: textColor,
+                fontWeight: isBold ? FontWeight.w800 : FontWeight.w500,
+                fontSize: isBold ? 15 : 13,
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: valueColor ?? textColor,
+              fontWeight: isBold ? FontWeight.w800 : FontWeight.w700,
+              fontSize: isBold ? 15 : 13,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _DetailRow extends StatelessWidget {
   const _DetailRow({

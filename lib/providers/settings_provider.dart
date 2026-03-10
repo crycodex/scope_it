@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
+import '../models/business_info.dart';
 
 enum CompanySize {
   startup,
@@ -42,18 +43,38 @@ extension CompanySizeExt on CompanySize {
 }
 
 class SettingsProvider extends ChangeNotifier {
-  SettingsProvider({CompanySize initial = CompanySize.small})
-      : _companySize = initial;
+  SettingsProvider({
+    CompanySize initial = CompanySize.small,
+    BusinessInfo initialBusinessInfo = const BusinessInfo(),
+  })  : _companySize = initial,
+        _businessInfo = initialBusinessInfo;
 
   CompanySize _companySize;
+  BusinessInfo _businessInfo;
 
   CompanySize get companySize => _companySize;
 
   double get multiplier => _companySize.multiplier;
 
+  BusinessInfo get businessInfo => _businessInfo;
+
+  double get ivaPercent => _businessInfo.ivaPercent;
+
   void setCompanySize(CompanySize size) {
     _companySize = size;
     DatabaseHelper.instance.setSetting('company_size', size.index.toString());
+    notifyListeners();
+  }
+
+  Future<void> saveBusinessInfo(BusinessInfo info) async {
+    final db = DatabaseHelper.instance;
+    await db.setSetting('biz_name', info.companyName);
+    await db.setSetting('biz_email', info.email);
+    await db.setSetting('biz_phone', info.phone);
+    await db.setSetting('biz_address', info.address);
+    await db.setSetting('biz_website', info.website);
+    await db.setSetting('biz_iva', info.ivaPercent.toString());
+    _businessInfo = info;
     notifyListeners();
   }
 }
