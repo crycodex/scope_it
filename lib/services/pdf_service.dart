@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import '../models/business_info.dart';
+import '../models/marketing_config.dart';
 import '../models/project.dart';
 import '../models/quotation_config.dart';
 
@@ -10,6 +11,7 @@ class PdfService {
     required Project project,
     required QuotationConfig config,
     required BusinessInfo businessInfo,
+    MarketingConfig? marketingConfig,
   }) async {
     final pdf = pw.Document();
 
@@ -151,6 +153,45 @@ class PdfService {
           isSmall: false,
         ));
       }
+    }
+
+    // Build marketing rows
+    final List<_PdfTableRow> marketingRows = [];
+    final mkt = marketingConfig;
+    if (mkt != null && mkt.services.isNotEmpty) {
+      for (final svc in mkt.serviceEnums) {
+        double svcTotal = 0;
+        switch (svc) {
+          case MarketingService.socialMedia:
+            svcTotal = mkt.socialMediaMonthly;
+            break;
+          case MarketingService.eventCoverage:
+            svcTotal = mkt.eventCoverageTotal;
+            break;
+          case MarketingService.digitalAds:
+            svcTotal = mkt.digitalAdsSetup + mkt.digitalAdsMgmtMonthly;
+            break;
+          case MarketingService.contentCreation:
+            svcTotal = mkt.contentCreationMonthly;
+            break;
+          case MarketingService.emailMarketing:
+            svcTotal = mkt.emailMarketingMonthly;
+            break;
+        }
+        marketingRows.add(_PdfTableRow(
+          label: svc.label,
+          value: '\$${svcTotal.toStringAsFixed(2)}',
+          isBold: false,
+          isSmall: false,
+        ));
+      }
+      marketingRows.add(_PdfTableRow(
+        label: 'Total Marketing',
+        value: '\$${mkt.totalEstimate.toStringAsFixed(2)}',
+        isBold: true,
+        isSmall: false,
+        isSeparatorBefore: true,
+      ));
     }
 
     pw.Widget buildTableRow(
@@ -435,6 +476,27 @@ class PdfService {
               ),
 
               // ── 6. Recurring costs ───────────────────────────────────
+              if (marketingRows.isNotEmpty) ...[
+                pw.SizedBox(height: 12),
+                pw.Text(
+                  'Marketing Digital',
+                  style: pw.TextStyle(
+                    font: fontBold,
+                    fontSize: 12,
+                    color: PdfColor.fromHex('#E91E63'),
+                  ),
+                ),
+                pw.SizedBox(height: 6),
+                pw.Container(
+                  height: 1,
+                  color: PdfColor.fromHex('#E91E63'),
+                ),
+                pw.SizedBox(height: 8),
+                ...marketingRows.map(
+                  (row) =>
+                      buildTableRow(row, fontNormal, fontBold, darkGrey, blue),
+                ),
+              ],
               if (recurringRows.isNotEmpty && hasRecurring) ...[
                 pw.SizedBox(height: 12),
                 pw.Text(

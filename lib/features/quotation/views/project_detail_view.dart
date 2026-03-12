@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../app/theme.dart';
 import '../../../database/database_helper.dart';
+import '../../../models/marketing_config.dart';
 import '../../../models/project.dart';
 import '../../../models/quotation_config.dart';
 import '../../../providers/settings_provider.dart';
@@ -333,6 +334,7 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
         project: project,
         config: config,
         businessInfo: businessInfo,
+        marketingConfig: project.marketingConfig,
       );
       await Printing.sharePdf(
         bytes: pdfBytes,
@@ -484,6 +486,17 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
           )
         else
           _buildLegacyDetail(project, isDark, textColor, borderColor),
+
+        // ── Marketing section ──
+        if (project.marketingConfig != null) ...[
+          const SizedBox(height: 16),
+          _buildMarketingDetail(
+            project.marketingConfig!,
+            isDark,
+            textColor,
+            borderColor,
+          ),
+        ],
       ],
     );
   }
@@ -827,6 +840,221 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
         ),
       ],
     );
+  }
+
+  // ── Marketing detail ─────────────────────────────────────────────────
+  Widget _buildMarketingDetail(
+    MarketingConfig mkt,
+    bool isDark,
+    Color textColor,
+    Color borderColor,
+  ) {
+    const mktColor = Color(0xFFE91E63);
+
+    return Column(
+      children: [
+        NeuBox(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: mktColor.withAlpha(20),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child:
+                        const Icon(Icons.campaign, color: mktColor, size: 24),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Marketing Digital',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: textColor,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Text(
+                          '${mkt.serviceEnums.length} servicio(s) activo(s)',
+                          style: TextStyle(
+                            color: textColor.withAlpha(150),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              // Services
+              ...mkt.serviceEnums.map(
+                (svc) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    children: [
+                      Icon(svc.icon, color: Color(svc.colorValue), size: 18),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          svc.label,
+                          style: TextStyle(
+                            color: textColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        _mktSvcAmount(mkt, svc),
+                        style: TextStyle(
+                          color: textColor.withAlpha(180),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Social details
+              if (mkt.hasSocialMedia &&
+                  mkt.socialPlatformEnums.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                _DetailRow(
+                  icon: Icons.share_outlined,
+                  label: 'Plataformas',
+                  value: mkt.socialPlatformEnums.map((p) => p.label).join(', '),
+                  textColor: textColor,
+                ),
+                _DetailRow(
+                  icon: Icons.calendar_month_outlined,
+                  label: 'Frecuencia',
+                  value: mkt.postFrequencyEnum.label,
+                  textColor: textColor,
+                ),
+              ],
+
+              // Event details
+              if (mkt.hasEventCoverage && mkt.eventTypeEnum != null) ...[
+                const SizedBox(height: 8),
+                _DetailRow(
+                  icon: Icons.event_outlined,
+                  label: 'Tipo de evento',
+                  value: mkt.eventTypeEnum!.label,
+                  textColor: textColor,
+                ),
+                if (mkt.coverageDurationEnum != null)
+                  _DetailRow(
+                    icon: Icons.access_time_outlined,
+                    label: 'Duración',
+                    value: mkt.coverageDurationEnum!.label,
+                    textColor: textColor,
+                  ),
+                _DetailRow(
+                  icon: Icons.numbers_outlined,
+                  label: 'Eventos / mes',
+                  value: '${mkt.eventQuantity}',
+                  textColor: textColor,
+                ),
+              ],
+
+              // Ads details
+              if (mkt.hasDigitalAds && mkt.adPlatformEnums.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                _DetailRow(
+                  icon: Icons.ads_click,
+                  label: 'Plataformas',
+                  value: mkt.adPlatformEnums.map((p) => p.label).join(', '),
+                  textColor: textColor,
+                ),
+                if (mkt.monthlyAdBudget != null)
+                  _DetailRow(
+                    icon: Icons.attach_money,
+                    label: 'Presupuesto ad/mes',
+                    value: '\$${mkt.monthlyAdBudget!.toStringAsFixed(0)}',
+                    textColor: textColor,
+                  ),
+              ],
+
+              // Content
+              if (mkt.hasContentCreation && mkt.contentPostsPerMonth > 0) ...[
+                const SizedBox(height: 8),
+                _DetailRow(
+                  icon: Icons.draw_outlined,
+                  label: 'Piezas / mes',
+                  value: '${mkt.contentPostsPerMonth}',
+                  textColor: textColor,
+                ),
+              ],
+
+              // Email
+              if (mkt.hasEmailMarketing && mkt.emailVolumeEnum != null) ...[
+                const SizedBox(height: 8),
+                _DetailRow(
+                  icon: Icons.people_outline,
+                  label: 'Contactos',
+                  value: mkt.emailVolumeEnum!.label,
+                  textColor: textColor,
+                ),
+              ],
+
+              Container(
+                height: 1.5,
+                color: borderColor.withAlpha(40),
+                margin: const EdgeInsets.symmetric(vertical: 10),
+              ),
+
+              // Price breakdown
+              if (mkt.oneTimeTotal > 0)
+                _PriceRow(
+                  label: 'Costo único',
+                  value: '\$${mkt.oneTimeTotal.toStringAsFixed(2)}',
+                  textColor: textColor,
+                ),
+              if (mkt.monthlyTotal > 0)
+                _PriceRow(
+                  label: 'Costo mensual',
+                  value: '\$${mkt.monthlyTotal.toStringAsFixed(2)}/mes',
+                  textColor: textColor,
+                ),
+              _PriceRow(
+                label: 'Total Marketing',
+                value: '\$${mkt.totalEstimate.toStringAsFixed(2)}',
+                textColor: textColor,
+                isBold: true,
+                valueColor: mktColor,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _mktSvcAmount(MarketingConfig mkt, MarketingService svc) {
+    switch (svc) {
+      case MarketingService.socialMedia:
+        return '\$${mkt.socialMediaMonthly.toStringAsFixed(0)}/mes';
+      case MarketingService.eventCoverage:
+        return '\$${mkt.eventCoverageTotal.toStringAsFixed(0)}';
+      case MarketingService.digitalAds:
+        return '\$${(mkt.digitalAdsSetup + mkt.digitalAdsMgmtMonthly).toStringAsFixed(0)}';
+      case MarketingService.contentCreation:
+        return '\$${mkt.contentCreationMonthly.toStringAsFixed(0)}/mes';
+      case MarketingService.emailMarketing:
+        return '\$${mkt.emailMarketingMonthly.toStringAsFixed(0)}/mes';
+    }
   }
 
   // ── Legacy line-item detail ─────────────────────────────────────────

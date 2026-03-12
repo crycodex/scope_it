@@ -6,12 +6,14 @@ import 'database/database_helper.dart';
 import 'models/business_info.dart';
 import 'providers/settings_provider.dart';
 import 'providers/theme_provider.dart';
+import 'services/marketing_pricing_service.dart';
 import 'services/pricing_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final db = DatabaseHelper.instance;
   await PricingService.instance.load();
+  await MarketingPricingService.instance.load();
   final themeModeIndex =
       int.tryParse(await db.getSetting('theme_mode') ?? '') ?? 0;
   final companySizeIndex =

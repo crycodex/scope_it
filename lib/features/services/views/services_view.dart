@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../app/theme.dart';
+import '../../../models/marketing_config.dart';
 import '../../../models/quotation_config.dart';
+import '../../../services/marketing_pricing_service.dart';
 import '../../../services/pricing_service.dart';
 
 class ServicesView extends StatefulWidget {
@@ -14,12 +16,15 @@ class ServicesView extends StatefulWidget {
 class _ServicesViewState extends State<ServicesView> {
   final _px = PricingService.instance;
 
+  final _mpx = MarketingPricingService.instance;
+
   static const _tabs = [
     'Servicios',
     'Despliegue',
     'Funciones',
     'Extras',
     'Soporte',
+    'Marketing',
   ];
 
   Future<void> _editPrice({
@@ -117,6 +122,9 @@ class _ServicesViewState extends State<ServicesView> {
                       borderColor: borderColor, onEdit: _editPrice,
                       onRefresh: () => setState(() {})),
                   _SoporteTab(px: _px, isDark: isDark, textColor: textColor,
+                      borderColor: borderColor, onEdit: _editPrice,
+                      onRefresh: () => setState(() {})),
+                  _MarketingTab(mpx: _mpx, isDark: isDark, textColor: textColor,
                       borderColor: borderColor, onEdit: _editPrice,
                       onRefresh: () => setState(() {})),
                 ],
@@ -466,6 +474,221 @@ class _SoporteTab extends StatelessWidget {
                         onRefresh();
                       },
                     ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Tab: Marketing ────────────────────────────────────────────────────────────
+
+class _MarketingTab extends StatelessWidget {
+  const _MarketingTab({
+    required this.mpx,
+    required this.isDark,
+    required this.textColor,
+    required this.borderColor,
+    required this.onEdit,
+    required this.onRefresh,
+  });
+
+  final MarketingPricingService mpx;
+  final bool isDark;
+  final Color textColor;
+  final Color borderColor;
+  final EditPriceFn onEdit;
+  final VoidCallback onRefresh;
+
+  static const _mktColor = Color(0xFFE91E63);
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+      children: [
+        _SectionHint(
+          text: 'Precios base de servicios de marketing digital.',
+          textColor: textColor,
+        ),
+        const SizedBox(height: 16),
+
+        // Social platforms
+        Text(
+          'Redes Sociales (por plataforma / mes)',
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            fontSize: 13,
+            color: textColor,
+          ),
+        ),
+        const SizedBox(height: 8),
+        ...SocialPlatform.values.map(
+          (p) => _PriceRow(
+            icon: p.icon,
+            iconColor: _mktColor,
+            label: p.label,
+            sublabel: 'Precio mensual base por plataforma',
+            value: mpx.socialPlatformMonthly(p),
+            format: (v) => '\$${v.toStringAsFixed(0)}/mes',
+            isDark: isDark,
+            textColor: textColor,
+            borderColor: borderColor,
+            onTap: () => onEdit(
+              label: '${p.label} — Mensual',
+              current: mpx.socialPlatformMonthly(p),
+              onSave: (v) async {
+                await mpx.setSocialPlatformMonthly(p, v);
+                onRefresh();
+              },
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 16),
+        Text(
+          'Cobertura de Eventos (precio base)',
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            fontSize: 13,
+            color: textColor,
+          ),
+        ),
+        const SizedBox(height: 8),
+        ...EventType.values.map(
+          (t) => _PriceRow(
+            icon: t.icon,
+            iconColor: _mktColor,
+            label: t.label,
+            sublabel: 'Precio base del evento',
+            value: mpx.eventBasePrice(t),
+            format: _fmt,
+            isDark: isDark,
+            textColor: textColor,
+            borderColor: borderColor,
+            onTap: () => onEdit(
+              label: '${t.label} — Precio base',
+              current: mpx.eventBasePrice(t),
+              onSave: (v) async {
+                await mpx.setEventBasePrice(t, v);
+                onRefresh();
+              },
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 16),
+        Text(
+          'Publicidad Digital (setup fee)',
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            fontSize: 13,
+            color: textColor,
+          ),
+        ),
+        const SizedBox(height: 8),
+        ...AdPlatform.values.map(
+          (p) => _PriceRow(
+            icon: p.icon,
+            iconColor: _mktColor,
+            label: p.label,
+            sublabel: 'Costo de configuración inicial',
+            value: mpx.adSetupFee(p),
+            format: _fmt,
+            isDark: isDark,
+            textColor: textColor,
+            borderColor: borderColor,
+            onTap: () => onEdit(
+              label: '${p.label} — Setup fee',
+              current: mpx.adSetupFee(p),
+              onSave: (v) async {
+                await mpx.setAdSetupFee(p, v);
+                onRefresh();
+              },
+            ),
+          ),
+        ),
+        _PriceRow(
+          icon: Icons.percent,
+          iconColor: _mktColor,
+          label: 'Tasa de gestión de Ads',
+          sublabel: '% del presupuesto mensual de anuncios',
+          value: mpx.adMgmtRate,
+          format: (v) => '${v.toStringAsFixed(1)}%',
+          isDark: isDark,
+          textColor: textColor,
+          borderColor: borderColor,
+          onTap: () => onEdit(
+            label: 'Tasa de gestión (%)',
+            current: mpx.adMgmtRate,
+            hint: 'Porcentaje (ej: 15)',
+            suffix: '%',
+            onSave: (v) async {
+              await mpx.setAdMgmtRate(v);
+              onRefresh();
+            },
+          ),
+        ),
+
+        const SizedBox(height: 16),
+        Text(
+          'Creación de Contenido',
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            fontSize: 13,
+            color: textColor,
+          ),
+        ),
+        const SizedBox(height: 8),
+        _PriceRow(
+          icon: Icons.draw_outlined,
+          iconColor: _mktColor,
+          label: 'Precio por pieza / post',
+          sublabel: 'Diseño gráfico, copy, etc.',
+          value: mpx.contentPricePerPost,
+          format: _fmt,
+          isDark: isDark,
+          textColor: textColor,
+          borderColor: borderColor,
+          onTap: () => onEdit(
+            label: 'Precio por pieza de contenido',
+            current: mpx.contentPricePerPost,
+            onSave: (v) async {
+              await mpx.setContentPricePerPost(v);
+              onRefresh();
+            },
+          ),
+        ),
+
+        const SizedBox(height: 16),
+        Text(
+          'Email Marketing (mensual)',
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            fontSize: 13,
+            color: textColor,
+          ),
+        ),
+        const SizedBox(height: 8),
+        ...EmailVolume.values.map(
+          (v) => _PriceRow(
+            icon: Icons.mark_email_read_outlined,
+            iconColor: _mktColor,
+            label: v.label,
+            sublabel: 'Precio mensual por volumen de contactos',
+            value: mpx.emailMonthlyPrice(v),
+            format: (val) => '\$${val.toStringAsFixed(0)}/mes',
+            isDark: isDark,
+            textColor: textColor,
+            borderColor: borderColor,
+            onTap: () => onEdit(
+              label: '${v.label} — Mensual',
+              current: mpx.emailMonthlyPrice(v),
+              onSave: (val) async {
+                await mpx.setEmailMonthlyPrice(v, val);
+                onRefresh();
+              },
+            ),
           ),
         ),
       ],

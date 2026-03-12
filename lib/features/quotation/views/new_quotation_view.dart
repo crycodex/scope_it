@@ -9,6 +9,7 @@ import '../../../models/project.dart';
 import '../../../models/quotation_config.dart';
 import '../../../providers/settings_provider.dart';
 import '../../../constants/project_icons.dart';
+import '../../../models/marketing_config.dart';
 import '../../../services/pricing_service.dart';
 import '../../../shared/widgets/neu_box.dart';
 
@@ -54,6 +55,19 @@ class _NewQuotationViewState extends State<NewQuotationView> {
   // Step 6
   SupportPlan _supportPlan = SupportPlan.none;
 
+  // Step 7 – Marketing (optional)
+  bool _includeMarketing = false;
+  final Set<MarketingService> _mktServices = {};
+  final Set<SocialPlatform> _mktSocialPlatforms = {};
+  PostFrequency _mktPostFrequency = PostFrequency.weekly;
+  EventType? _mktEventType;
+  CoverageDuration _mktCoverageDuration = CoverageDuration.fourHours;
+  int _mktEventQuantity = 1;
+  final Set<AdPlatform> _mktAdPlatforms = {};
+  double? _mktMonthlyAdBudget;
+  int _mktContentPostsPerMonth = 4;
+  EmailVolume? _mktEmailVolume;
+
   bool get _isEditing => widget.editProjectId != null;
 
   @override
@@ -93,6 +107,29 @@ class _NewQuotationViewState extends State<NewQuotationView> {
         ..clear()
         ..addAll(config.extraEnums);
       _supportPlan = config.supportPlanEnum;
+    }
+
+    final mktConfig = project.marketingConfig;
+    if (mktConfig != null) {
+      _includeMarketing = true;
+      _mktServices
+        ..clear()
+        ..addAll(mktConfig.serviceEnums);
+      _mktSocialPlatforms
+        ..clear()
+        ..addAll(mktConfig.socialPlatformEnums);
+      _mktPostFrequency = mktConfig.postFrequencyEnum;
+      _mktEventType = mktConfig.eventTypeEnum;
+      if (mktConfig.coverageDurationEnum != null) {
+        _mktCoverageDuration = mktConfig.coverageDurationEnum!;
+      }
+      _mktEventQuantity = mktConfig.eventQuantity;
+      _mktAdPlatforms
+        ..clear()
+        ..addAll(mktConfig.adPlatformEnums);
+      _mktMonthlyAdBudget = mktConfig.monthlyAdBudget;
+      _mktContentPostsPerMonth = mktConfig.contentPostsPerMonth;
+      _mktEmailVolume = mktConfig.emailVolumeEnum;
     }
 
     setState(() => _loadingEdit = false);
@@ -136,11 +173,31 @@ class _NewQuotationViewState extends State<NewQuotationView> {
 
   double get _monthlyWithDiscount => _monthlyRecurring * _billingCycle.discount;
 
+  MarketingConfig? get _marketingConfig {
+    if (!_includeMarketing || _mktServices.isEmpty) return null;
+    return MarketingConfig(
+      services: _mktServices.map((s) => s.name).toList(),
+      socialPlatforms: _mktSocialPlatforms.map((p) => p.name).toList(),
+      postFrequency: _mktPostFrequency.name,
+      eventType: _mktEventType?.name,
+      coverageDuration: _mktServices.contains(MarketingService.eventCoverage)
+          ? _mktCoverageDuration.name
+          : null,
+      eventQuantity: _mktEventQuantity,
+      adPlatforms: _mktAdPlatforms.map((p) => p.name).toList(),
+      monthlyAdBudget: _mktMonthlyAdBudget,
+      contentPostsPerMonth: _mktContentPostsPerMonth,
+      emailVolume: _mktEmailVolume?.name,
+    );
+  }
+
+  double get _marketingTotal => _marketingConfig?.totalEstimate ?? 0;
+
   double get _totalEstimate {
-    if (_billingCycle == BillingCycle.annual) {
-      return _developmentTotal + (_monthlyWithDiscount * 12);
-    }
-    return _developmentTotal + _monthlyRecurring;
+    final devPart = _billingCycle == BillingCycle.annual
+        ? _developmentTotal + (_monthlyWithDiscount * 12)
+        : _developmentTotal + _monthlyRecurring;
+    return devPart + _marketingTotal;
   }
 
   // ── Navigation ─────────────────────────────────────────────────────
@@ -174,7 +231,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
       );
       return;
     }
-    if (_currentStep < 6) _goToStep(_currentStep + 1);
+    if (_currentStep < 7) _goToStep(_currentStep + 1);
   }
 
   void _back() {
@@ -198,7 +255,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
     final monthlyPart = _billingCycle == BillingCycle.annual
         ? _monthlyWithDiscount * 12
         : _monthlyRecurring;
-    final finalTotal = adjustedDevTotal + monthlyPart;
+    final finalTotal = adjustedDevTotal + monthlyPart + _marketingTotal;
 
     final config = QuotationConfig(
       serviceType: _serviceType!.name,
@@ -217,6 +274,9 @@ class _NewQuotationViewState extends State<NewQuotationView> {
       supportPlan: _supportPlan.name,
     );
 
+    final mktCfg = _marketingConfig;
+    final mktJson = mktCfg != null ? json.encode(mktCfg.toJson()) : null;
+
     if (_isEditing && _editProject != null) {
       final updated = _editProject!.copyWith(
         name: _nameCtrl.text.trim(),
@@ -224,6 +284,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
         totalEstimate: finalTotal,
         multiplierUsed: globalMult,
         configJson: json.encode(config.toJson()),
+        marketingConfigJson: mktJson,
         iconCode: _selectedIconCode,
       );
       await DatabaseHelper.instance.updateProject(updated);
@@ -236,6 +297,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
         multiplierUsed: globalMult,
         createdAt: DateTime.now(),
         configJson: json.encode(config.toJson()),
+        marketingConfigJson: mktJson,
         iconCode: _selectedIconCode,
       );
       final projectId = await DatabaseHelper.instance.insertProject(project);
@@ -295,7 +357,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
               child: _StepIndicator(
                 currentStep: _currentStep,
-                totalSteps: 6,
+                totalSteps: 7,
                 isDark: isDark,
                 onStepTap: _goToStep,
               ),
@@ -313,6 +375,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                   _buildStepUsers(isDark, textColor, borderColor),
                   _buildStepExtras(isDark, textColor, borderColor),
                   _buildStepSupport(isDark, textColor, borderColor),
+                  _buildStepMarketing(isDark, textColor, borderColor),
                   _buildSummary(isDark, textColor, borderColor, globalMult),
                 ],
               ),
@@ -382,6 +445,12 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                   _serviceType = type;
                   _features.removeWhere((f) => !f.availableFor.contains(type));
                   _extras.removeWhere((e) => !e.availableFor.contains(type));
+                  // Auto-activate marketing when marketing type selected
+                  if (type == ServiceType.marketing) {
+                    _includeMarketing = true;
+                  } else {
+                    _includeMarketing = false;
+                  }
                 }),
                 isDark: isDark,
               ),
@@ -396,6 +465,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                     _serviceType = ServiceType.custom;
                     _customName = result.$1;
                     _customPrice = result.$2;
+                    _includeMarketing = false;
                   });
                 }
               },
@@ -473,6 +543,9 @@ class _NewQuotationViewState extends State<NewQuotationView> {
 
   // ── STEP 1: PLATAFORMA ─────────────────────────────────────────────
   Widget _buildStepPlatform(bool isDark, Color textColor, Color borderColor) {
+    if (_serviceType == ServiceType.marketing) {
+      return _buildMktStep1Services(isDark, textColor, borderColor);
+    }
     if (_serviceType == ServiceType.app) {
       return _buildMobilePlatformStep(isDark, textColor);
     }
@@ -628,6 +701,9 @@ class _NewQuotationViewState extends State<NewQuotationView> {
 
   // ── STEP 2: FUNCIONALIDADES ────────────────────────────────────────
   Widget _buildStepFeatures(bool isDark, Color textColor, Color borderColor) {
+    if (_serviceType == ServiceType.marketing) {
+      return _buildMktStep2Social(isDark, textColor, borderColor);
+    }
     final available = Feature.values
         .where(
           (f) =>
@@ -678,6 +754,9 @@ class _NewQuotationViewState extends State<NewQuotationView> {
 
   // ── STEP 3: USUARIOS ───────────────────────────────────────────────
   Widget _buildStepUsers(bool isDark, Color textColor, Color borderColor) {
+    if (_serviceType == ServiceType.marketing) {
+      return _buildMktStep3Events(isDark, textColor, borderColor);
+    }
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
       children: [
@@ -737,6 +816,9 @@ class _NewQuotationViewState extends State<NewQuotationView> {
 
   // ── STEP 4: ADICIONALES ────────────────────────────────────────────
   Widget _buildStepExtras(bool isDark, Color textColor, Color borderColor) {
+    if (_serviceType == ServiceType.marketing) {
+      return _buildMktStep4Ads(isDark, textColor, borderColor);
+    }
     final available = Extra.values
         .where(
           (e) =>
@@ -779,6 +861,9 @@ class _NewQuotationViewState extends State<NewQuotationView> {
 
   // ── STEP 5: SOPORTE ────────────────────────────────────────────────
   Widget _buildStepSupport(bool isDark, Color textColor, Color borderColor) {
+    if (_serviceType == ServiceType.marketing) {
+      return _buildMktStep5ContentEmail(isDark, textColor, borderColor);
+    }
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
       children: [
@@ -803,6 +888,790 @@ class _NewQuotationViewState extends State<NewQuotationView> {
               onTap: () => setState(() => _supportPlan = plan),
               isDark: isDark,
             ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── STEP 6: MARKETING (add-on for non-marketing service types) ──────
+  Widget _buildStepMarketing(bool isDark, Color textColor, Color borderColor) {
+    // If marketing is the main service type, this step shows a summary/review
+    if (_serviceType == ServiceType.marketing) {
+      return _buildMktStep6Review(isDark, textColor, borderColor);
+    }
+
+    final mktColor = const Color(0xFFE91E63);
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+      children: [
+        _StepTitle(label: 'Marketing Digital (Opcional)', textColor: textColor),
+        const SizedBox(height: 4),
+        Text(
+          'Agrega servicios de marketing a esta cotización',
+          style: TextStyle(color: textColor.withAlpha(160), fontSize: 13),
+        ),
+        const SizedBox(height: 16),
+
+        // Toggle incluir marketing
+        NeuBox(
+          color: _includeMarketing
+              ? mktColor.withAlpha(20)
+              : (isDark ? AppColors.grey800 : AppColors.white),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          onTap: () => setState(() {
+            _includeMarketing = !_includeMarketing;
+            if (!_includeMarketing) _mktServices.clear();
+          }),
+          child: Row(
+            children: [
+              Icon(Icons.campaign_outlined,
+                  color: _includeMarketing ? mktColor : textColor, size: 22),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Incluir Marketing en la Cotización',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: textColor,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Activa para agregar servicios de marketing',
+                      style: TextStyle(
+                          fontSize: 12, color: textColor.withAlpha(150)),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: _includeMarketing,
+                activeThumbColor: mktColor,
+                onChanged: (v) => setState(() {
+                  _includeMarketing = v;
+                  if (!v) _mktServices.clear();
+                }),
+              ),
+            ],
+          ),
+        ),
+
+        if (_includeMarketing) ...[
+          const SizedBox(height: 20),
+          _StepTitle(label: 'Servicios de Marketing', textColor: textColor),
+          const SizedBox(height: 12),
+          ..._buildMktServiceCheckboxes(isDark, textColor, mktColor),
+          if (_mktServices.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            NeuBox(
+              color: mktColor.withAlpha(20),
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  const Icon(Icons.campaign, color: Color(0xFFE91E63), size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Total Marketing estimado',
+                      style: TextStyle(fontWeight: FontWeight.w700, color: textColor),
+                    ),
+                  ),
+                  Text(
+                    '\$${_marketingTotal.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: Color(0xFFE91E63),
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ],
+    );
+  }
+
+  // ── Shared helper: marketing service checkboxes ─────────────────────
+  List<Widget> _buildMktServiceCheckboxes(
+      bool isDark, Color textColor, Color mktColor) {
+    return MarketingService.values.map((svc) {
+      final selected = _mktServices.contains(svc);
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: _CheckCard(
+          title: svc.label,
+          subtitle: svc.description,
+          icon: svc.icon,
+          checked: selected,
+          onTap: () => setState(() {
+            selected ? _mktServices.remove(svc) : _mktServices.add(svc);
+          }),
+          isDark: isDark,
+          accentColor: Color(svc.colorValue),
+          subtitleBelow: true,
+        ),
+      );
+    }).toList();
+  }
+
+  // ── MARKETING STEPS (when marketing is the main service type) ───────
+
+  Widget _buildMktStep1Services(bool isDark, Color textColor, Color borderColor) {
+    const mktColor = Color(0xFFE91E63);
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+      children: [
+        _StepTitle(label: 'Servicios de Marketing', textColor: textColor),
+        const SizedBox(height: 4),
+        Text(
+          'Selecciona los servicios que incluirás',
+          style: TextStyle(color: textColor.withAlpha(160), fontSize: 13),
+        ),
+        const SizedBox(height: 16),
+        ..._buildMktServiceCheckboxes(isDark, textColor, mktColor),
+        if (_mktServices.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          NeuBox(
+            color: mktColor.withAlpha(15),
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline, color: Color(0xFFE91E63), size: 18),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Configura cada servicio en los pasos siguientes',
+                    style: TextStyle(
+                        fontSize: 12, color: textColor.withAlpha(180)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMktStep2Social(bool isDark, Color textColor, Color borderColor) {
+    const mktColor = Color(0xFFE91E63);
+    final hasSocial = _mktServices.contains(MarketingService.socialMedia);
+
+    if (!hasSocial) {
+      return _buildMktSkipStep(
+        'Redes Sociales',
+        'No seleccionaste este servicio',
+        Icons.share_outlined,
+        textColor,
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+      children: [
+        _StepTitle(label: 'Plataformas de Redes Sociales', textColor: textColor),
+        const SizedBox(height: 12),
+        ...SocialPlatform.values.map((p) {
+          final selected = _mktSocialPlatforms.contains(p);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: NeuBox(
+              color: selected
+                  ? mktColor.withAlpha(20)
+                  : (isDark ? AppColors.grey800 : AppColors.white),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              onTap: () => setState(() => selected
+                  ? _mktSocialPlatforms.remove(p)
+                  : _mktSocialPlatforms.add(p)),
+              child: Row(
+                children: [
+                  Icon(p.icon,
+                      color: selected ? mktColor : textColor, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(p.label,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w700, color: textColor)),
+                  ),
+                  Text('\$${p.monthlyBase.toStringAsFixed(0)}/mes',
+                      style: const TextStyle(
+                          color: AppColors.blue,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13)),
+                  const SizedBox(width: 8),
+                  _Radio(selected: selected, isDark: isDark),
+                ],
+              ),
+            ),
+          );
+        }),
+        const SizedBox(height: 20),
+        _StepTitle(label: 'Frecuencia de Publicación', textColor: textColor),
+        const SizedBox(height: 12),
+        ...PostFrequency.values.map((freq) {
+          final selected = _mktPostFrequency == freq;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: NeuBox(
+              color: selected
+                  ? mktColor.withAlpha(20)
+                  : (isDark ? AppColors.grey800 : AppColors.white),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              onTap: () => setState(() => _mktPostFrequency = freq),
+              child: Row(
+                children: [
+                  Icon(Icons.calendar_month_outlined,
+                      color: selected ? mktColor : textColor, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(freq.label,
+                            style: TextStyle(
+                                fontWeight: FontWeight.w700, color: textColor)),
+                        Text('${freq.postsPerMonth} publicaciones/mes',
+                            style: TextStyle(
+                                fontSize: 11, color: textColor.withAlpha(140))),
+                      ],
+                    ),
+                  ),
+                  Text('×${freq.multiplier.toStringAsFixed(1)}',
+                      style: const TextStyle(
+                          color: AppColors.blue,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13)),
+                  const SizedBox(width: 8),
+                  _Radio(selected: selected, isDark: isDark),
+                ],
+              ),
+            ),
+          );
+        }),
+        if (_mktSocialPlatforms.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          _MktPricePreview(
+            label: 'Redes Sociales / mes',
+            amount: _marketingConfig?.socialMediaMonthly ?? 0,
+            textColor: textColor,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMktStep3Events(bool isDark, Color textColor, Color borderColor) {
+    const mktColor = Color(0xFFE91E63);
+    final hasEvents = _mktServices.contains(MarketingService.eventCoverage);
+
+    if (!hasEvents) {
+      return _buildMktSkipStep(
+        'Cobertura de Eventos',
+        'No seleccionaste este servicio',
+        Icons.camera_alt_outlined,
+        textColor,
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+      children: [
+        _StepTitle(label: 'Tipo de Evento', textColor: textColor),
+        const SizedBox(height: 12),
+        ...EventType.values.map((t) {
+          final selected = _mktEventType == t;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: NeuBox(
+              color: selected
+                  ? mktColor.withAlpha(20)
+                  : (isDark ? AppColors.grey800 : AppColors.white),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              onTap: () => setState(() => _mktEventType = t),
+              child: Row(
+                children: [
+                  Icon(t.icon,
+                      color: selected ? mktColor : textColor, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(t.label,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w700, color: textColor)),
+                  ),
+                  Text('\$${t.basePrice.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                          color: AppColors.blue,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13)),
+                  const SizedBox(width: 8),
+                  _Radio(selected: selected, isDark: isDark),
+                ],
+              ),
+            ),
+          );
+        }),
+        const SizedBox(height: 20),
+        _StepTitle(label: 'Duración de Cobertura', textColor: textColor),
+        const SizedBox(height: 12),
+        ...CoverageDuration.values.map((d) {
+          final selected = _mktCoverageDuration == d;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: NeuBox(
+              color: selected
+                  ? mktColor.withAlpha(20)
+                  : (isDark ? AppColors.grey800 : AppColors.white),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              onTap: () => setState(() => _mktCoverageDuration = d),
+              child: Row(
+                children: [
+                  Icon(Icons.access_time_outlined,
+                      color: selected ? mktColor : textColor, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(d.label,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w700, color: textColor)),
+                  ),
+                  Text('×${d.multiplier.toStringAsFixed(1)}',
+                      style: const TextStyle(
+                          color: AppColors.blue,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13)),
+                  const SizedBox(width: 8),
+                  _Radio(selected: selected, isDark: isDark),
+                ],
+              ),
+            ),
+          );
+        }),
+        const SizedBox(height: 20),
+        _StepTitle(label: 'Eventos por Mes', textColor: textColor),
+        const SizedBox(height: 12),
+        NeuBox(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              const Icon(Icons.event_outlined,
+                  color: Color(0xFFE91E63), size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text('$_mktEventQuantity evento(s) por mes',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w700, color: textColor)),
+              ),
+              IconButton(
+                icon: const Icon(Icons.remove_circle_outline),
+                color: _mktEventQuantity > 1
+                    ? mktColor
+                    : textColor.withAlpha(80),
+                onPressed: _mktEventQuantity > 1
+                    ? () => setState(() => _mktEventQuantity--)
+                    : null,
+              ),
+              Text('$_mktEventQuantity',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                      color: textColor)),
+              IconButton(
+                icon: const Icon(Icons.add_circle_outline),
+                color: mktColor,
+                onPressed: () => setState(() => _mktEventQuantity++),
+              ),
+            ],
+          ),
+        ),
+        if (_mktEventType != null) ...[
+          const SizedBox(height: 16),
+          _MktPricePreview(
+            label: 'Cobertura de Eventos',
+            amount: _marketingConfig?.eventCoverageTotal ?? 0,
+            textColor: textColor,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMktStep4Ads(bool isDark, Color textColor, Color borderColor) {
+    const mktColor = Color(0xFFE91E63);
+    final hasAds = _mktServices.contains(MarketingService.digitalAds);
+
+    if (!hasAds) {
+      return _buildMktSkipStep(
+        'Publicidad Digital',
+        'No seleccionaste este servicio',
+        Icons.ads_click,
+        textColor,
+      );
+    }
+
+    final adBudgetCtrl = TextEditingController(
+      text: _mktMonthlyAdBudget?.toStringAsFixed(0) ?? '',
+    );
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+      children: [
+        _StepTitle(label: 'Plataformas de Publicidad', textColor: textColor),
+        const SizedBox(height: 12),
+        ...AdPlatform.values.map((p) {
+          final selected = _mktAdPlatforms.contains(p);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: NeuBox(
+              color: selected
+                  ? mktColor.withAlpha(20)
+                  : (isDark ? AppColors.grey800 : AppColors.white),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              onTap: () => setState(() => selected
+                  ? _mktAdPlatforms.remove(p)
+                  : _mktAdPlatforms.add(p)),
+              child: Row(
+                children: [
+                  Icon(p.icon,
+                      color: selected ? mktColor : textColor, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(p.label,
+                            style: TextStyle(
+                                fontWeight: FontWeight.w700, color: textColor)),
+                        Text(
+                            'Setup: \$${p.setupFee.toStringAsFixed(0)} + 15% gestión',
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: textColor.withAlpha(140))),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _Radio(selected: selected, isDark: isDark),
+                ],
+              ),
+            ),
+          );
+        }),
+        if (_mktAdPlatforms.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          _StepTitle(label: 'Presupuesto Mensual de Anuncios', textColor: textColor),
+          const SizedBox(height: 8),
+          Text(
+            'Se cobrará el 15% como fee de gestión',
+            style: TextStyle(fontSize: 12, color: textColor.withAlpha(150)),
+          ),
+          const SizedBox(height: 12),
+          _NeuField(
+            controller: adBudgetCtrl,
+            hint: 'Presupuesto mensual en \$ (ej: 500)',
+            isDark: isDark,
+            borderColor: isDark ? AppColors.white : AppColors.black,
+            onChanged: (v) {
+              _mktMonthlyAdBudget = double.tryParse(v);
+            },
+          ),
+          const SizedBox(height: 16),
+          _MktPricePreview(
+            label: 'Publicidad Digital (setup + gestión)',
+            amount: (_marketingConfig?.digitalAdsSetup ?? 0) +
+                (_marketingConfig?.digitalAdsMgmtMonthly ?? 0),
+            textColor: textColor,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMktStep5ContentEmail(
+      bool isDark, Color textColor, Color borderColor) {
+    const mktColor = Color(0xFFE91E63);
+    final hasContent =
+        _mktServices.contains(MarketingService.contentCreation);
+    final hasEmail = _mktServices.contains(MarketingService.emailMarketing);
+
+    if (!hasContent && !hasEmail) {
+      return _buildMktSkipStep(
+        'Contenido y Email',
+        'No seleccionaste estos servicios',
+        Icons.draw_outlined,
+        textColor,
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+      children: [
+        if (hasContent) ...[
+          _StepTitle(label: 'Creación de Contenido', textColor: textColor),
+          const SizedBox(height: 12),
+          NeuBox(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                const Icon(Icons.image_outlined,
+                    color: Color(0xFFE91E63), size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('$_mktContentPostsPerMonth piezas / mes',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w700, color: textColor)),
+                      Text('\$25 por pieza de contenido',
+                          style: TextStyle(
+                              fontSize: 12, color: textColor.withAlpha(150))),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.remove_circle_outline),
+                  color: _mktContentPostsPerMonth > 1
+                      ? mktColor
+                      : textColor.withAlpha(80),
+                  onPressed: _mktContentPostsPerMonth > 1
+                      ? () => setState(() => _mktContentPostsPerMonth--)
+                      : null,
+                ),
+                Text('$_mktContentPostsPerMonth',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 18,
+                        color: textColor)),
+                IconButton(
+                  icon: const Icon(Icons.add_circle_outline),
+                  color: mktColor,
+                  onPressed: () =>
+                      setState(() => _mktContentPostsPerMonth++),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          _MktPricePreview(
+            label: 'Contenido / mes',
+            amount: _marketingConfig?.contentCreationMonthly ?? 0,
+            textColor: textColor,
+          ),
+        ],
+
+        if (hasContent && hasEmail) const SizedBox(height: 24),
+
+        if (hasEmail) ...[
+          _StepTitle(label: 'Email Marketing — Volumen', textColor: textColor),
+          const SizedBox(height: 12),
+          ...EmailVolume.values.map((v) {
+            final selected = _mktEmailVolume == v;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: NeuBox(
+                color: selected
+                    ? mktColor.withAlpha(20)
+                    : (isDark ? AppColors.grey800 : AppColors.white),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                onTap: () => setState(() => _mktEmailVolume = v),
+                child: Row(
+                  children: [
+                    Icon(Icons.people_outline,
+                        color: selected ? mktColor : textColor, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(v.label,
+                          style: TextStyle(
+                              fontWeight: FontWeight.w700, color: textColor)),
+                    ),
+                    Text('\$${v.monthlyPrice.toStringAsFixed(0)}/mes',
+                        style: const TextStyle(
+                            color: AppColors.blue,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13)),
+                    const SizedBox(width: 8),
+                    _Radio(selected: selected, isDark: isDark),
+                  ],
+                ),
+              ),
+            );
+          }),
+          if (_mktEmailVolume != null) ...[
+            const SizedBox(height: 8),
+            _MktPricePreview(
+              label: 'Email Marketing / mes',
+              amount: _marketingConfig?.emailMarketingMonthly ?? 0,
+              textColor: textColor,
+            ),
+          ],
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMktStep6Review(bool isDark, Color textColor, Color borderColor) {
+    const mktColor = Color(0xFFE91E63);
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+      children: [
+        _StepTitle(label: 'Revisión de Servicios', textColor: textColor),
+        const SizedBox(height: 4),
+        Text(
+          'Resumen de lo que configuraste',
+          style: TextStyle(color: textColor.withAlpha(160), fontSize: 13),
+        ),
+        const SizedBox(height: 16),
+        if (_mktServices.isEmpty)
+          NeuBox(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Icon(Icons.warning_amber_outlined,
+                    color: textColor.withAlpha(120), size: 40),
+                const SizedBox(height: 12),
+                Text(
+                  'Sin servicios seleccionados',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w700, color: textColor),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Regresa al paso 1 para seleccionar servicios de marketing',
+                  style: TextStyle(
+                      fontSize: 12, color: textColor.withAlpha(150)),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          )
+        else ...[
+          ..._mktServices.map((svc) {
+            double svcTotal = 0;
+            final cfg = _marketingConfig;
+            if (cfg != null) {
+              switch (svc) {
+                case MarketingService.socialMedia:
+                  svcTotal = cfg.socialMediaMonthly;
+                  break;
+                case MarketingService.eventCoverage:
+                  svcTotal = cfg.eventCoverageTotal;
+                  break;
+                case MarketingService.digitalAds:
+                  svcTotal = cfg.digitalAdsSetup + cfg.digitalAdsMgmtMonthly;
+                  break;
+                case MarketingService.contentCreation:
+                  svcTotal = cfg.contentCreationMonthly;
+                  break;
+                case MarketingService.emailMarketing:
+                  svcTotal = cfg.emailMarketingMonthly;
+                  break;
+              }
+            }
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: NeuBox(
+                color: Color(svc.colorValue).withAlpha(15),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 14),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: Color(svc.colorValue).withAlpha(30),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(svc.icon,
+                          color: Color(svc.colorValue), size: 18),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(svc.label,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  color: textColor,
+                                  fontSize: 14)),
+                          Text(svc.description,
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  color: textColor.withAlpha(140))),
+                        ],
+                      ),
+                    ),
+                    Text('\$${svcTotal.toStringAsFixed(2)}',
+                        style: TextStyle(
+                            color: Color(svc.colorValue),
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14)),
+                  ],
+                ),
+              ),
+            );
+          }),
+          const SizedBox(height: 16),
+          NeuBox(
+            color: mktColor.withAlpha(20),
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                const Icon(Icons.campaign, color: Color(0xFFE91E63), size: 22),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text('TOTAL MARKETING',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w800, color: textColor)),
+                ),
+                Text('\$${_marketingTotal.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                        color: Color(0xFFE91E63),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 18)),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMktSkipStep(
+      String title, String message, IconData icon, Color textColor) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+      children: [
+        _StepTitle(label: title, textColor: textColor),
+        const SizedBox(height: 40),
+        Center(
+          child: Column(
+            children: [
+              Icon(icon, size: 56, color: textColor.withAlpha(60)),
+              const SizedBox(height: 16),
+              Text(
+                message,
+                style:
+                    TextStyle(color: textColor.withAlpha(120), fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Continúa al siguiente paso →',
+                style: TextStyle(
+                    color: AppColors.blue,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13),
+              ),
+            ],
           ),
         ),
       ],
@@ -1022,6 +1891,75 @@ class _NewQuotationViewState extends State<NewQuotationView> {
         ),
         const SizedBox(height: 16),
 
+        // Marketing summary
+        if (_includeMarketing && _mktServices.isNotEmpty) ...[
+          NeuBox(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.campaign_outlined,
+                        color: Color(0xFFE91E63), size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Marketing Digital',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: textColor,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ..._mktServices.map((svc) {
+                  double svcTotal = 0;
+                  switch (svc) {
+                    case MarketingService.socialMedia:
+                      svcTotal = _marketingConfig?.socialMediaMonthly ?? 0;
+                      break;
+                    case MarketingService.eventCoverage:
+                      svcTotal = _marketingConfig?.eventCoverageTotal ?? 0;
+                      break;
+                    case MarketingService.digitalAds:
+                      svcTotal = (_marketingConfig?.digitalAdsSetup ?? 0) +
+                          (_marketingConfig?.digitalAdsMgmtMonthly ?? 0);
+                      break;
+                    case MarketingService.contentCreation:
+                      svcTotal =
+                          _marketingConfig?.contentCreationMonthly ?? 0;
+                      break;
+                    case MarketingService.emailMarketing:
+                      svcTotal =
+                          _marketingConfig?.emailMarketingMonthly ?? 0;
+                      break;
+                  }
+                  return _SummaryRow(
+                    label: svc.label,
+                    value: '\$${svcTotal.toStringAsFixed(2)}',
+                    textColor: textColor,
+                  );
+                }),
+                Container(
+                  height: 1.5,
+                  color: borderColor.withAlpha(60),
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                ),
+                _SummaryRow(
+                  label: 'Total Marketing',
+                  value: '\$${_marketingTotal.toStringAsFixed(2)}',
+                  textColor: textColor,
+                  isBold: true,
+                  valueColor: const Color(0xFFE91E63),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+
         // Grand total
         NeuBox(
           color: AppColors.blue,
@@ -1070,7 +2008,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
 
   // ── Bottom Bar ─────────────────────────────────────────────────────
   Widget _buildBottomBar(Color bgColor, Color borderColor, Color textColor) {
-    final isSummary = _currentStep == 6;
+    final isSummary = _currentStep == 7;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
@@ -1129,7 +2067,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                             ? (_isEditing
                                   ? 'Guardar Cambios'
                                   : 'Guardar Cotización')
-                            : (_currentStep == 5
+                            : (_currentStep == 6
                                   ? 'Ver Resumen'
                                   : 'Siguiente')),
                   onTap: _saving ? null : (isSummary ? _save : _next),
@@ -1433,11 +2371,20 @@ class _ServiceCard extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          if (type != ServiceType.custom)
+          if (type != ServiceType.custom && type != ServiceType.marketing)
             Text(
               '\$${type.basePrice.toStringAsFixed(0)}',
               style: TextStyle(
                 color: AppColors.blue,
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+          if (type == ServiceType.marketing)
+            Text(
+              'Variable',
+              style: TextStyle(
+                color: const Color(0xFFE91E63),
                 fontWeight: FontWeight.w700,
                 fontSize: 12,
               ),
@@ -1546,6 +2493,8 @@ class _CheckCard extends StatelessWidget {
     required this.checked,
     required this.onTap,
     required this.isDark,
+    this.accentColor,
+    this.subtitleBelow = false,
   });
 
   final String title;
@@ -1554,14 +2503,17 @@ class _CheckCard extends StatelessWidget {
   final bool checked;
   final VoidCallback onTap;
   final bool isDark;
+  final Color? accentColor;
+  final bool subtitleBelow;
 
   @override
   Widget build(BuildContext context) {
     final textColor = isDark ? AppColors.white : AppColors.black;
+    final accent = accentColor ?? AppColors.blue;
 
     return NeuBox(
       color: checked
-          ? AppColors.blue.withAlpha(20)
+          ? accent.withAlpha(20)
           : (isDark ? AppColors.grey800 : AppColors.white),
       onTap: onTap,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -1571,11 +2523,11 @@ class _CheckCard extends StatelessWidget {
             width: 22,
             height: 22,
             decoration: BoxDecoration(
-              color: checked ? AppColors.blue : Colors.transparent,
+              color: checked ? accent : Colors.transparent,
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
                 color: checked
-                    ? AppColors.blue
+                    ? accent
                     : (isDark ? AppColors.white : AppColors.black),
                 width: 2,
               ),
@@ -1587,28 +2539,52 @@ class _CheckCard extends StatelessWidget {
           const SizedBox(width: 14),
           Icon(
             icon,
-            color: checked ? AppColors.blue : textColor.withAlpha(160),
+            color: checked ? accent : textColor.withAlpha(160),
             size: 20,
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              title,
+            child: subtitleBelow
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: textColor,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: accent.withAlpha(200),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  )
+                : Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: textColor,
+                      fontSize: 14,
+                    ),
+                  ),
+          ),
+          if (!subtitleBelow)
+            Text(
+              subtitle,
               style: TextStyle(
+                color: accent,
                 fontWeight: FontWeight.w700,
-                color: textColor,
-                fontSize: 14,
+                fontSize: 13,
               ),
             ),
-          ),
-          Text(
-            subtitle,
-            style: TextStyle(
-              color: AppColors.blue,
-              fontWeight: FontWeight.w700,
-              fontSize: 13,
-            ),
-          ),
         ],
       ),
     );
@@ -1705,6 +2681,49 @@ class _NavBtn extends StatelessWidget {
                   ),
                 ),
         ),
+      ),
+    );
+  }
+}
+
+class _MktPricePreview extends StatelessWidget {
+  const _MktPricePreview({
+    required this.label,
+    required this.amount,
+    required this.textColor,
+  });
+
+  final String label;
+  final double amount;
+  final Color textColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE91E63).withAlpha(15),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.calculate_outlined, color: Color(0xFFE91E63), size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(fontSize: 12, color: textColor.withAlpha(180)),
+            ),
+          ),
+          Text(
+            '\$${amount.toStringAsFixed(2)}',
+            style: const TextStyle(
+              color: Color(0xFFE91E63),
+              fontWeight: FontWeight.w800,
+              fontSize: 14,
+            ),
+          ),
+        ],
       ),
     );
   }

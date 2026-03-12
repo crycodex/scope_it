@@ -22,7 +22,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -44,6 +44,10 @@ class DatabaseHelper {
     if (oldVersion < 4) {
       await db.execute(
           'ALTER TABLE projects ADD COLUMN iconCode INTEGER');
+    }
+    if (oldVersion < 5) {
+      await db.execute(
+          'ALTER TABLE projects ADD COLUMN marketingConfigJson TEXT');
     }
   }
 
@@ -87,6 +91,7 @@ class DatabaseHelper {
         status INTEGER NOT NULL DEFAULT 0,
         createdAt TEXT NOT NULL,
         configJson TEXT,
+        marketingConfigJson TEXT,
         iconCode INTEGER
       )
     ''');
@@ -115,6 +120,7 @@ class DatabaseHelper {
       {'name': 'Backend', 'description': 'Servidor y APIs', 'colorValue': 0xFF4CAF50},
       {'name': 'UX/UI', 'description': 'Diseño de experiencia', 'colorValue': 0xFFFF9800},
       {'name': 'DevOps', 'description': 'Infraestructura y despliegue', 'colorValue': 0xFF9C27B0},
+      {'name': 'Marketing', 'description': 'Servicios de marketing digital', 'colorValue': 0xFFE91E63},
     ];
 
     final services = [
@@ -126,6 +132,12 @@ class DatabaseHelper {
       {'catIdx': 2, 'name': 'Prototipo interactivo', 'basePrice': 300.0, 'unit': 'flujo'},
       {'catIdx': 3, 'name': 'Configuración CI/CD', 'basePrice': 400.0, 'unit': 'pipeline'},
       {'catIdx': 3, 'name': 'Contenedores Docker', 'basePrice': 150.0, 'unit': 'servicio'},
+      {'catIdx': 4, 'name': 'Gestión de Redes Sociales', 'basePrice': 150.0, 'unit': 'mes'},
+      {'catIdx': 4, 'name': 'Cobertura Fotográfica de Evento', 'basePrice': 300.0, 'unit': 'evento'},
+      {'catIdx': 4, 'name': 'Campaña Google Ads', 'basePrice': 200.0, 'unit': 'setup'},
+      {'catIdx': 4, 'name': 'Campaña Meta Ads', 'basePrice': 150.0, 'unit': 'setup'},
+      {'catIdx': 4, 'name': 'Diseño de Post / Banner', 'basePrice': 25.0, 'unit': 'pieza'},
+      {'catIdx': 4, 'name': 'Email Marketing', 'basePrice': 80.0, 'unit': 'mes'},
     ];
 
     final catIds = <int>[];

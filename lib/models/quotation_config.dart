@@ -7,6 +7,7 @@ enum ServiceType {
   app,
   backendApi,
   automationAi,
+  marketing,
   custom;
 
   String get label {
@@ -19,6 +20,8 @@ enum ServiceType {
         return 'Backend / API';
       case ServiceType.automationAi:
         return 'Automatización IA';
+      case ServiceType.marketing:
+        return 'Marketing Digital';
       case ServiceType.custom:
         return 'Personalizado';
     }
@@ -34,6 +37,8 @@ enum ServiceType {
         return 'API REST, microservicios';
       case ServiceType.automationAi:
         return 'Flujos con IA';
+      case ServiceType.marketing:
+        return 'Redes, eventos, ads, contenido';
       case ServiceType.custom:
         return 'Servicio personalizado';
     }
@@ -49,6 +54,8 @@ enum ServiceType {
         return Icons.dns;
       case ServiceType.automationAi:
         return Icons.smart_toy;
+      case ServiceType.marketing:
+        return Icons.campaign;
       case ServiceType.custom:
         return Icons.add_circle_outline;
     }
@@ -64,6 +71,8 @@ enum ServiceType {
         return 200;
       case ServiceType.automationAi:
         return 500;
+      case ServiceType.marketing:
+        return 0;
       case ServiceType.custom:
         return 0;
     }
@@ -79,10 +88,14 @@ enum ServiceType {
         return 0xFF9C27B0;
       case ServiceType.automationAi:
         return 0xFFFF9800;
+      case ServiceType.marketing:
+        return 0xFFE91E63;
       case ServiceType.custom:
         return 0xFF607D8B;
     }
   }
+
+  bool get isMarketingType => this == ServiceType.marketing;
 }
 
 // ── STEP 2: PLATFORM / DEPLOYMENT ────────────────────────────────────

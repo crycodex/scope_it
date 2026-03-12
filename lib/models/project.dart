@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'marketing_config.dart';
 import 'quotation_config.dart';
 
 enum ProjectStatus { pending, inProgress, completed, cancelled }
@@ -42,6 +43,7 @@ class Project {
   final DateTime createdAt;
   final List<ProjectLine> lines;
   final String? configJson;
+  final String? marketingConfigJson;
   final int? iconCode;
 
   const Project({
@@ -55,6 +57,7 @@ class Project {
     required this.createdAt,
     this.lines = const [],
     this.configJson,
+    this.marketingConfigJson,
     this.iconCode,
   });
 
@@ -63,6 +66,16 @@ class Project {
     try {
       return QuotationConfig.fromJson(
           json.decode(configJson!) as Map<String, dynamic>);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  MarketingConfig? get marketingConfig {
+    if (marketingConfigJson == null) return null;
+    try {
+      return MarketingConfig.fromJson(
+          json.decode(marketingConfigJson!) as Map<String, dynamic>);
     } catch (_) {
       return null;
     }
@@ -79,6 +92,7 @@ class Project {
     DateTime? createdAt,
     List<ProjectLine>? lines,
     String? configJson,
+    String? marketingConfigJson,
     int? iconCode,
   }) {
     return Project(
@@ -92,6 +106,7 @@ class Project {
       createdAt: createdAt ?? this.createdAt,
       lines: lines ?? this.lines,
       configJson: configJson ?? this.configJson,
+      marketingConfigJson: marketingConfigJson ?? this.marketingConfigJson,
       iconCode: iconCode ?? this.iconCode,
     );
   }
@@ -107,6 +122,7 @@ class Project {
       'status': status.index,
       'createdAt': createdAt.toIso8601String(),
       'configJson': configJson,
+      'marketingConfigJson': marketingConfigJson,
       'iconCode': iconCode,
     };
   }
@@ -123,6 +139,7 @@ class Project {
       createdAt: DateTime.parse(map['createdAt'] as String),
       lines: const [],
       configJson: map['configJson'] as String?,
+      marketingConfigJson: map['marketingConfigJson'] as String?,
       iconCode: map['iconCode'] as int?,
     );
   }
