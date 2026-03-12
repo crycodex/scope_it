@@ -88,8 +88,9 @@ class SettingsView extends StatelessWidget {
                   const SizedBox(height: 24),
                   // Company size section
                   _SectionTitle(
-                      label: 'Factor de Precio por Tipo de Cliente',
-                      textColor: textColor),
+                    label: 'Factor de Precio por Tipo de Cliente',
+                    textColor: textColor,
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     'Ajusta el multiplicador según el tamaño de la empresa del cliente.',
@@ -107,16 +108,20 @@ class SettingsView extends StatelessWidget {
                         onTap: () => settingsProvider.setCompanySize(size),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 14),
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
                           decoration: BoxDecoration(
                             color: selected
                                 ? AppColors.blue
                                 : (isDark
-                                    ? AppColors.grey800
-                                    : AppColors.grey100),
+                                      ? AppColors.grey800
+                                      : AppColors.grey100),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                                color: borderColor, width: AppColors.borderWidth),
+                              color: borderColor,
+                              width: AppColors.borderWidth,
+                            ),
                             boxShadow: [
                               BoxShadow(
                                 color: borderColor,
@@ -133,8 +138,7 @@ class SettingsView extends StatelessWidget {
                                 selected
                                     ? Icons.radio_button_checked
                                     : Icons.radio_button_unchecked,
-                                color:
-                                    selected ? AppColors.white : borderColor,
+                                color: selected ? AppColors.white : borderColor,
                                 size: 20,
                               ),
                               const SizedBox(width: 12),
@@ -152,7 +156,9 @@ class SettingsView extends StatelessWidget {
                               ),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: selected
                                       ? AppColors.white.withAlpha(30)
@@ -188,25 +194,39 @@ class SettingsView extends StatelessWidget {
                     color: AppColors.blue.withAlpha(20),
                     child: Row(
                       children: [
-                        const Icon(Icons.info_outline, color: AppColors.blue),
+                        Icon(Icons.info_outline, color: AppColors.blue),
                         const SizedBox(width: 12),
                         Expanded(
                           child: RichText(
                             text: TextSpan(
                               style: TextStyle(color: textColor, fontSize: 14),
                               children: [
-                                const TextSpan(text: 'Factor actual: '),
+                                TextSpan(
+                                  text: 'Factor actual: ',
+                                  style: TextStyle(
+                                    color: textColor == AppColors.white
+                                        ? AppColors.black
+                                        : AppColors.blue,
+                                  ),
+                                ),
                                 TextSpan(
                                   text:
                                       'x${settingsProvider.multiplier.toStringAsFixed(1)} ',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.w800,
-                                    color: AppColors.blue,
+                                    color: textColor == AppColors.white
+                                        ? AppColors.black
+                                        : AppColors.blue,
                                   ),
                                 ),
                                 TextSpan(
                                   text:
                                       '(${settingsProvider.companySize.label})',
+                                  style: TextStyle(
+                                    color: textColor == AppColors.white
+                                        ? AppColors.black
+                                        : AppColors.blue,
+                                  ),
                                 ),
                               ],
                             ),
@@ -219,12 +239,16 @@ class SettingsView extends StatelessWidget {
                   // ── Business Info Section ──────────────────────────────
                   const SizedBox(height: 24),
                   _SectionTitle(
-                      label: 'Información del Negocio', textColor: textColor),
+                    label: 'Información del Negocio',
+                    textColor: textColor,
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     'Esta información aparecerá en las notas de venta generadas.',
                     style: TextStyle(
-                        color: textColor.withAlpha(160), fontSize: 13),
+                      color: textColor.withAlpha(160),
+                      fontSize: 13,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   _BusinessInfoForm(
@@ -274,17 +298,18 @@ class _BusinessInfoFormState extends State<_BusinessInfoForm> {
   @override
   void initState() {
     super.initState();
-    _nameCtrl =
-        TextEditingController(text: widget.initial.companyName);
+    _nameCtrl = TextEditingController(text: widget.initial.companyName);
     _emailCtrl = TextEditingController(text: widget.initial.email);
     _phoneCtrl = TextEditingController(text: widget.initial.phone);
     _addressCtrl = TextEditingController(text: widget.initial.address);
     _websiteCtrl = TextEditingController(text: widget.initial.website);
     _ivaCtrl = TextEditingController(
-        text: widget.initial.ivaPercent == 0
-            ? ''
-            : widget.initial.ivaPercent.toStringAsFixed(
-                widget.initial.ivaPercent % 1 == 0 ? 0 : 2));
+      text: widget.initial.ivaPercent == 0
+          ? ''
+          : widget.initial.ivaPercent.toStringAsFixed(
+              widget.initial.ivaPercent % 1 == 0 ? 0 : 2,
+            ),
+    );
   }
 
   @override
@@ -310,53 +335,55 @@ class _BusinessInfoFormState extends State<_BusinessInfoForm> {
       phone: _phoneCtrl.text.trim(),
       address: _addressCtrl.text.trim(),
       website: _websiteCtrl.text.trim(),
-      ivaPercent:
-          (int.tryParse(_ivaCtrl.text.trim()) ?? 0).toDouble(),
+      ivaPercent: (int.tryParse(_ivaCtrl.text.trim()) ?? 0).toDouble(),
     );
 
     await context.read<SettingsProvider>().saveBusinessInfo(info);
 
     if (mounted) {
       setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Información guardada')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Información guardada')));
     }
   }
 
   Widget _buildField(
-      TextEditingController ctrl, String hint,
-      {TextInputType keyboardType = TextInputType.text}) {
+    TextEditingController ctrl,
+    String hint, {
+    TextInputType keyboardType = TextInputType.text,
+  }) {
     final borderColor = widget.borderColor;
     final isDark = widget.isDark;
 
     return Container(
       decoration: BoxDecoration(
         color: isDark ? AppColors.grey800 : AppColors.grey100,
-        border:
-            Border.all(color: borderColor, width: AppColors.borderWidth),
+        border: Border.all(color: borderColor, width: AppColors.borderWidth),
         boxShadow: [
           BoxShadow(
-              color: borderColor,
-              offset: const Offset(3, 3),
-              blurRadius: 0),
+            color: borderColor,
+            offset: const Offset(3, 3),
+            blurRadius: 0,
+          ),
         ],
       ),
       child: TextField(
         controller: ctrl,
         keyboardType: keyboardType,
-        style: TextStyle(
-            color: isDark ? AppColors.white : AppColors.black),
+        style: TextStyle(color: isDark ? AppColors.white : AppColors.black),
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(
-              color: (isDark ? AppColors.white : AppColors.black)
-                  .withAlpha(120)),
+            color: (isDark ? AppColors.white : AppColors.black).withAlpha(120),
+          ),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16, vertical: 14),
+            horizontal: 16,
+            vertical: 14,
+          ),
         ),
       ),
     );
@@ -371,19 +398,23 @@ class _BusinessInfoFormState extends State<_BusinessInfoForm> {
       children: [
         _buildField(_nameCtrl, 'Nombre de la empresa (ej. Ionos Hub)'),
         const SizedBox(height: 10),
-        _buildField(_emailCtrl, 'Correo electrónico',
-            keyboardType: TextInputType.emailAddress),
+        _buildField(
+          _emailCtrl,
+          'Correo electrónico',
+          keyboardType: TextInputType.emailAddress,
+        ),
         const SizedBox(height: 10),
-        _buildField(_phoneCtrl, 'Teléfono',
-            keyboardType: TextInputType.phone),
+        _buildField(_phoneCtrl, 'Teléfono', keyboardType: TextInputType.phone),
         const SizedBox(height: 10),
         _buildField(_addressCtrl, 'Dirección'),
         const SizedBox(height: 10),
-        _buildField(_websiteCtrl, 'Sitio web',
-            keyboardType: TextInputType.url),
+        _buildField(_websiteCtrl, 'Sitio web', keyboardType: TextInputType.url),
         const SizedBox(height: 10),
-        _buildField(_ivaCtrl, 'IVA % (0 = sin IVA)',
-            keyboardType: TextInputType.number),
+        _buildField(
+          _ivaCtrl,
+          'IVA % (0 = sin IVA)',
+          keyboardType: TextInputType.number,
+        ),
         const SizedBox(height: 16),
         GestureDetector(
           onTap: _save,
@@ -393,12 +424,15 @@ class _BusinessInfoFormState extends State<_BusinessInfoForm> {
               color: AppColors.blue,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                  color: borderColor, width: AppColors.borderWidth),
+                color: borderColor,
+                width: AppColors.borderWidth,
+              ),
               boxShadow: [
                 BoxShadow(
-                    color: borderColor,
-                    offset: const Offset(3, 3),
-                    blurRadius: 0),
+                  color: borderColor,
+                  offset: const Offset(3, 3),
+                  blurRadius: 0,
+                ),
               ],
             ),
             child: Center(
@@ -407,7 +441,9 @@ class _BusinessInfoFormState extends State<_BusinessInfoForm> {
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
-                          color: AppColors.white, strokeWidth: 2),
+                        color: AppColors.white,
+                        strokeWidth: 2,
+                      ),
                     )
                   : const Text(
                       'Guardar Información',

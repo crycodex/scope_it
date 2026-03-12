@@ -578,7 +578,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
             padding: const EdgeInsets.only(bottom: 10),
             child: NeuBox(
               color: _mobilePlatform == mp
-                  ? AppColors.blue.withAlpha(25)
+                  ? AppColors.blue
                   : (isDark ? AppColors.grey800 : AppColors.white),
               onTap: () => setState(() => _mobilePlatform = mp),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -586,7 +586,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                 children: [
                   Icon(
                     mp.icon,
-                    color: _mobilePlatform == mp ? AppColors.blue : textColor,
+                    color: _mobilePlatform == mp ? AppColors.white : textColor,
                     size: 22,
                   ),
                   const SizedBox(width: 12),
@@ -598,7 +598,9 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                           mp.label,
                           style: TextStyle(
                             fontWeight: FontWeight.w700,
-                            color: textColor,
+                            color: _mobilePlatform == mp
+                                ? AppColors.white
+                                : textColor,
                             fontSize: 14,
                           ),
                         ),
@@ -607,7 +609,9 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                           mp.description,
                           style: TextStyle(
                             fontSize: 12,
-                            color: textColor.withAlpha(150),
+                            color: _mobilePlatform == mp
+                                ? AppColors.white.withAlpha(200)
+                                : textColor.withAlpha(150),
                           ),
                         ),
                       ],
@@ -617,9 +621,11 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                     Text(
                       tag,
                       style: TextStyle(
-                        color: tag.startsWith('-')
-                            ? Colors.green
-                            : AppColors.blue,
+                        color: _mobilePlatform == mp
+                            ? AppColors.white
+                            : (tag.startsWith('-')
+                                  ? Colors.green
+                                  : AppColors.blue),
                         fontWeight: FontWeight.w700,
                         fontSize: 12,
                       ),
@@ -772,7 +778,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
             padding: const EdgeInsets.only(bottom: 10),
             child: NeuBox(
               color: _userTier == tier
-                  ? AppColors.blue.withAlpha(25)
+                  ? AppColors.blue
                   : (isDark ? AppColors.grey800 : AppColors.white),
               onTap: () => setState(() => _userTier = tier),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -780,7 +786,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                 children: [
                   Icon(
                     tier.icon,
-                    color: _userTier == tier ? AppColors.blue : textColor,
+                    color: _userTier == tier ? AppColors.white : textColor,
                     size: 22,
                   ),
                   const SizedBox(width: 12),
@@ -789,7 +795,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                       tier.label,
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
-                        color: textColor,
+                        color: _userTier == tier ? AppColors.white : textColor,
                       ),
                     ),
                   ),
@@ -798,7 +804,9 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                         ? 'Incluido'
                         : '+\$${tier.monthlyPrice.toStringAsFixed(0)}/mes',
                     style: TextStyle(
-                      color: AppColors.blue,
+                      color: _userTier == tier
+                          ? AppColors.white
+                          : AppColors.blue,
                       fontWeight: FontWeight.w700,
                       fontSize: 13,
                     ),
@@ -917,7 +925,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
         // Toggle incluir marketing
         NeuBox(
           color: _includeMarketing
-              ? mktColor.withAlpha(20)
+              ? mktColor
               : (isDark ? AppColors.grey800 : AppColors.white),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           onTap: () => setState(() {
@@ -926,8 +934,11 @@ class _NewQuotationViewState extends State<NewQuotationView> {
           }),
           child: Row(
             children: [
-              Icon(Icons.campaign_outlined,
-                  color: _includeMarketing ? mktColor : textColor, size: 22),
+              Icon(
+                Icons.campaign_outlined,
+                color: _includeMarketing ? AppColors.white : textColor,
+                size: 22,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -937,7 +948,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                       'Incluir Marketing en la Cotización',
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
-                        color: textColor,
+                        color: _includeMarketing ? AppColors.white : textColor,
                         fontSize: 14,
                       ),
                     ),
@@ -945,14 +956,19 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                     Text(
                       'Activa para agregar servicios de marketing',
                       style: TextStyle(
-                          fontSize: 12, color: textColor.withAlpha(150)),
+                        fontSize: 12,
+                        color: _includeMarketing
+                            ? AppColors.white.withAlpha(200)
+                            : textColor.withAlpha(150),
+                      ),
                     ),
                   ],
                 ),
               ),
               Switch(
                 value: _includeMarketing,
-                activeThumbColor: mktColor,
+                activeThumbColor: AppColors.white,
+                activeTrackColor: mktColor.withAlpha(180),
                 onChanged: (v) => setState(() {
                   _includeMarketing = v;
                   if (!v) _mktServices.clear();
@@ -974,12 +990,19 @@ class _NewQuotationViewState extends State<NewQuotationView> {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  const Icon(Icons.campaign, color: Color(0xFFE91E63), size: 22),
+                  const Icon(
+                    Icons.campaign,
+                    color: Color(0xFFE91E63),
+                    size: 22,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Total Marketing estimado',
-                      style: TextStyle(fontWeight: FontWeight.w700, color: textColor),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.white,
+                      ),
                     ),
                   ),
                   Text(
@@ -1001,7 +1024,10 @@ class _NewQuotationViewState extends State<NewQuotationView> {
 
   // ── Shared helper: marketing service checkboxes ─────────────────────
   List<Widget> _buildMktServiceCheckboxes(
-      bool isDark, Color textColor, Color mktColor) {
+    bool isDark,
+    Color textColor,
+    Color mktColor,
+  ) {
     return MarketingService.values.map((svc) {
       final selected = _mktServices.contains(svc);
       return Padding(
@@ -1024,7 +1050,11 @@ class _NewQuotationViewState extends State<NewQuotationView> {
 
   // ── MARKETING STEPS (when marketing is the main service type) ───────
 
-  Widget _buildMktStep1Services(bool isDark, Color textColor, Color borderColor) {
+  Widget _buildMktStep1Services(
+    bool isDark,
+    Color textColor,
+    Color borderColor,
+  ) {
     const mktColor = Color(0xFFE91E63);
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
@@ -1044,13 +1074,21 @@ class _NewQuotationViewState extends State<NewQuotationView> {
             padding: const EdgeInsets.all(14),
             child: Row(
               children: [
-                const Icon(Icons.info_outline, color: Color(0xFFE91E63), size: 18),
+                const Icon(
+                  Icons.info_outline,
+                  color: Color(0xFFE91E63),
+                  size: 18,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     'Configura cada servicio en los pasos siguientes',
                     style: TextStyle(
-                        fontSize: 12, color: textColor.withAlpha(180)),
+                      fontSize: 12,
+                      color: textColor == AppColors.white
+                          ? AppColors.black
+                          : AppColors.white,
+                    ),
                   ),
                 ),
               ],
@@ -1077,7 +1115,10 @@ class _NewQuotationViewState extends State<NewQuotationView> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
       children: [
-        _StepTitle(label: 'Plataformas de Redes Sociales', textColor: textColor),
+        _StepTitle(
+          label: 'Plataformas de Redes Sociales',
+          textColor: textColor,
+        ),
         const SizedBox(height: 12),
         ...SocialPlatform.values.map((p) {
           final selected = _mktSocialPlatforms.contains(p);
@@ -1085,27 +1126,39 @@ class _NewQuotationViewState extends State<NewQuotationView> {
             padding: const EdgeInsets.only(bottom: 8),
             child: NeuBox(
               color: selected
-                  ? mktColor.withAlpha(20)
+                  ? mktColor
                   : (isDark ? AppColors.grey800 : AppColors.white),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              onTap: () => setState(() => selected
-                  ? _mktSocialPlatforms.remove(p)
-                  : _mktSocialPlatforms.add(p)),
+              onTap: () => setState(
+                () => selected
+                    ? _mktSocialPlatforms.remove(p)
+                    : _mktSocialPlatforms.add(p),
+              ),
               child: Row(
                 children: [
-                  Icon(p.icon,
-                      color: selected ? mktColor : textColor, size: 20),
+                  Icon(
+                    p.icon,
+                    color: selected ? AppColors.white : textColor,
+                    size: 20,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(p.label,
-                        style: TextStyle(
-                            fontWeight: FontWeight.w700, color: textColor)),
+                    child: Text(
+                      p.label,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: selected ? AppColors.white : textColor,
+                      ),
+                    ),
                   ),
-                  Text('\$${p.monthlyBase.toStringAsFixed(0)}/mes',
-                      style: const TextStyle(
-                          color: AppColors.blue,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13)),
+                  Text(
+                    '\$${p.monthlyBase.toStringAsFixed(0)}/mes',
+                    style: TextStyle(
+                      color: selected ? AppColors.white : AppColors.blue,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                  ),
                   const SizedBox(width: 8),
                   _Radio(selected: selected, isDark: isDark),
                 ],
@@ -1122,33 +1175,49 @@ class _NewQuotationViewState extends State<NewQuotationView> {
             padding: const EdgeInsets.only(bottom: 8),
             child: NeuBox(
               color: selected
-                  ? mktColor.withAlpha(20)
+                  ? mktColor
                   : (isDark ? AppColors.grey800 : AppColors.white),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               onTap: () => setState(() => _mktPostFrequency = freq),
               child: Row(
                 children: [
-                  Icon(Icons.calendar_month_outlined,
-                      color: selected ? mktColor : textColor, size: 20),
+                  Icon(
+                    Icons.calendar_month_outlined,
+                    color: selected ? AppColors.white : textColor,
+                    size: 20,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(freq.label,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w700, color: textColor)),
-                        Text('${freq.postsPerMonth} publicaciones/mes',
-                            style: TextStyle(
-                                fontSize: 11, color: textColor.withAlpha(140))),
+                        Text(
+                          freq.label,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: selected ? AppColors.white : textColor,
+                          ),
+                        ),
+                        Text(
+                          '${freq.postsPerMonth} publicaciones/mes',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: selected
+                                ? AppColors.white.withAlpha(200)
+                                : textColor.withAlpha(140),
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  Text('×${freq.multiplier.toStringAsFixed(1)}',
-                      style: const TextStyle(
-                          color: AppColors.blue,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13)),
+                  Text(
+                    '×${freq.multiplier.toStringAsFixed(1)}',
+                    style: TextStyle(
+                      color: selected ? AppColors.white : AppColors.blue,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                  ),
                   const SizedBox(width: 8),
                   _Radio(selected: selected, isDark: isDark),
                 ],
@@ -1192,25 +1261,35 @@ class _NewQuotationViewState extends State<NewQuotationView> {
             padding: const EdgeInsets.only(bottom: 8),
             child: NeuBox(
               color: selected
-                  ? mktColor.withAlpha(20)
+                  ? mktColor
                   : (isDark ? AppColors.grey800 : AppColors.white),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               onTap: () => setState(() => _mktEventType = t),
               child: Row(
                 children: [
-                  Icon(t.icon,
-                      color: selected ? mktColor : textColor, size: 20),
+                  Icon(
+                    t.icon,
+                    color: selected ? AppColors.white : textColor,
+                    size: 20,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(t.label,
-                        style: TextStyle(
-                            fontWeight: FontWeight.w700, color: textColor)),
+                    child: Text(
+                      t.label,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: selected ? AppColors.white : textColor,
+                      ),
+                    ),
                   ),
-                  Text('\$${t.basePrice.toStringAsFixed(0)}',
-                      style: const TextStyle(
-                          color: AppColors.blue,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13)),
+                  Text(
+                    '\$${t.basePrice.toStringAsFixed(0)}',
+                    style: TextStyle(
+                      color: selected ? AppColors.white : AppColors.blue,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                  ),
                   const SizedBox(width: 8),
                   _Radio(selected: selected, isDark: isDark),
                 ],
@@ -1227,25 +1306,35 @@ class _NewQuotationViewState extends State<NewQuotationView> {
             padding: const EdgeInsets.only(bottom: 8),
             child: NeuBox(
               color: selected
-                  ? mktColor.withAlpha(20)
+                  ? mktColor
                   : (isDark ? AppColors.grey800 : AppColors.white),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               onTap: () => setState(() => _mktCoverageDuration = d),
               child: Row(
                 children: [
-                  Icon(Icons.access_time_outlined,
-                      color: selected ? mktColor : textColor, size: 20),
+                  Icon(
+                    Icons.access_time_outlined,
+                    color: selected ? AppColors.white : textColor,
+                    size: 20,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(d.label,
-                        style: TextStyle(
-                            fontWeight: FontWeight.w700, color: textColor)),
+                    child: Text(
+                      d.label,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: selected ? AppColors.white : textColor,
+                      ),
+                    ),
                   ),
-                  Text('×${d.multiplier.toStringAsFixed(1)}',
-                      style: const TextStyle(
-                          color: AppColors.blue,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13)),
+                  Text(
+                    '×${d.multiplier.toStringAsFixed(1)}',
+                    style: TextStyle(
+                      color: selected ? AppColors.white : AppColors.blue,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                  ),
                   const SizedBox(width: 8),
                   _Radio(selected: selected, isDark: isDark),
                 ],
@@ -1260,13 +1349,20 @@ class _NewQuotationViewState extends State<NewQuotationView> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              const Icon(Icons.event_outlined,
-                  color: Color(0xFFE91E63), size: 20),
+              const Icon(
+                Icons.event_outlined,
+                color: Color(0xFFE91E63),
+                size: 20,
+              ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text('$_mktEventQuantity evento(s) por mes',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w700, color: textColor)),
+                child: Text(
+                  '$_mktEventQuantity evento(s) por mes',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: textColor,
+                  ),
+                ),
               ),
               IconButton(
                 icon: const Icon(Icons.remove_circle_outline),
@@ -1277,11 +1373,14 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                     ? () => setState(() => _mktEventQuantity--)
                     : null,
               ),
-              Text('$_mktEventQuantity',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 18,
-                      color: textColor)),
+              Text(
+                '$_mktEventQuantity',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                  color: textColor,
+                ),
+              ),
               IconButton(
                 icon: const Icon(Icons.add_circle_outline),
                 color: mktColor,
@@ -1330,29 +1429,42 @@ class _NewQuotationViewState extends State<NewQuotationView> {
             padding: const EdgeInsets.only(bottom: 8),
             child: NeuBox(
               color: selected
-                  ? mktColor.withAlpha(20)
+                  ? mktColor
                   : (isDark ? AppColors.grey800 : AppColors.white),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              onTap: () => setState(() => selected
-                  ? _mktAdPlatforms.remove(p)
-                  : _mktAdPlatforms.add(p)),
+              onTap: () => setState(
+                () => selected
+                    ? _mktAdPlatforms.remove(p)
+                    : _mktAdPlatforms.add(p),
+              ),
               child: Row(
                 children: [
-                  Icon(p.icon,
-                      color: selected ? mktColor : textColor, size: 20),
+                  Icon(
+                    p.icon,
+                    color: selected ? AppColors.white : textColor,
+                    size: 20,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(p.label,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w700, color: textColor)),
                         Text(
-                            'Setup: \$${p.setupFee.toStringAsFixed(0)} + 15% gestión',
-                            style: TextStyle(
-                                fontSize: 11,
-                                color: textColor.withAlpha(140))),
+                          p.label,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: selected ? AppColors.white : textColor,
+                          ),
+                        ),
+                        Text(
+                          'Setup: \$${p.setupFee.toStringAsFixed(0)} + 15% gestión',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: selected
+                                ? AppColors.white.withAlpha(200)
+                                : textColor.withAlpha(140),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -1365,7 +1477,10 @@ class _NewQuotationViewState extends State<NewQuotationView> {
         }),
         if (_mktAdPlatforms.isNotEmpty) ...[
           const SizedBox(height: 20),
-          _StepTitle(label: 'Presupuesto Mensual de Anuncios', textColor: textColor),
+          _StepTitle(
+            label: 'Presupuesto Mensual de Anuncios',
+            textColor: textColor,
+          ),
           const SizedBox(height: 8),
           Text(
             'Se cobrará el 15% como fee de gestión',
@@ -1384,7 +1499,8 @@ class _NewQuotationViewState extends State<NewQuotationView> {
           const SizedBox(height: 16),
           _MktPricePreview(
             label: 'Publicidad Digital (setup + gestión)',
-            amount: (_marketingConfig?.digitalAdsSetup ?? 0) +
+            amount:
+                (_marketingConfig?.digitalAdsSetup ?? 0) +
                 (_marketingConfig?.digitalAdsMgmtMonthly ?? 0),
             textColor: textColor,
           ),
@@ -1394,10 +1510,12 @@ class _NewQuotationViewState extends State<NewQuotationView> {
   }
 
   Widget _buildMktStep5ContentEmail(
-      bool isDark, Color textColor, Color borderColor) {
+    bool isDark,
+    Color textColor,
+    Color borderColor,
+  ) {
     const mktColor = Color(0xFFE91E63);
-    final hasContent =
-        _mktServices.contains(MarketingService.contentCreation);
+    final hasContent = _mktServices.contains(MarketingService.contentCreation);
     final hasEmail = _mktServices.contains(MarketingService.emailMarketing);
 
     if (!hasContent && !hasEmail) {
@@ -1419,19 +1537,30 @@ class _NewQuotationViewState extends State<NewQuotationView> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
-                const Icon(Icons.image_outlined,
-                    color: Color(0xFFE91E63), size: 20),
+                const Icon(
+                  Icons.image_outlined,
+                  color: Color(0xFFE91E63),
+                  size: 20,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('$_mktContentPostsPerMonth piezas / mes',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w700, color: textColor)),
-                      Text('\$25 por pieza de contenido',
-                          style: TextStyle(
-                              fontSize: 12, color: textColor.withAlpha(150))),
+                      Text(
+                        '$_mktContentPostsPerMonth piezas / mes',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: textColor,
+                        ),
+                      ),
+                      Text(
+                        '\$25 por pieza de contenido',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: textColor.withAlpha(150),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -1444,16 +1573,18 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                       ? () => setState(() => _mktContentPostsPerMonth--)
                       : null,
                 ),
-                Text('$_mktContentPostsPerMonth',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 18,
-                        color: textColor)),
+                Text(
+                  '$_mktContentPostsPerMonth',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 18,
+                    color: textColor,
+                  ),
+                ),
                 IconButton(
                   icon: const Icon(Icons.add_circle_outline),
                   color: mktColor,
-                  onPressed: () =>
-                      setState(() => _mktContentPostsPerMonth++),
+                  onPressed: () => setState(() => _mktContentPostsPerMonth++),
                 ),
               ],
             ),
@@ -1477,25 +1608,38 @@ class _NewQuotationViewState extends State<NewQuotationView> {
               padding: const EdgeInsets.only(bottom: 8),
               child: NeuBox(
                 color: selected
-                    ? mktColor.withAlpha(20)
+                    ? mktColor
                     : (isDark ? AppColors.grey800 : AppColors.white),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
                 onTap: () => setState(() => _mktEmailVolume = v),
                 child: Row(
                   children: [
-                    Icon(Icons.people_outline,
-                        color: selected ? mktColor : textColor, size: 20),
+                    Icon(
+                      Icons.people_outline,
+                      color: selected ? AppColors.white : textColor,
+                      size: 20,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(v.label,
-                          style: TextStyle(
-                              fontWeight: FontWeight.w700, color: textColor)),
+                      child: Text(
+                        v.label,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: selected ? AppColors.white : textColor,
+                        ),
+                      ),
                     ),
-                    Text('\$${v.monthlyPrice.toStringAsFixed(0)}/mes',
-                        style: const TextStyle(
-                            color: AppColors.blue,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13)),
+                    Text(
+                      '\$${v.monthlyPrice.toStringAsFixed(0)}/mes',
+                      style: TextStyle(
+                        color: selected ? AppColors.white : AppColors.blue,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                    ),
                     const SizedBox(width: 8),
                     _Radio(selected: selected, isDark: isDark),
                   ],
@@ -1534,19 +1678,26 @@ class _NewQuotationViewState extends State<NewQuotationView> {
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                Icon(Icons.warning_amber_outlined,
-                    color: textColor.withAlpha(120), size: 40),
+                Icon(
+                  Icons.warning_amber_outlined,
+                  color: textColor.withAlpha(120),
+                  size: 40,
+                ),
                 const SizedBox(height: 12),
                 Text(
                   'Sin servicios seleccionados',
                   style: TextStyle(
-                      fontWeight: FontWeight.w700, color: textColor),
+                    fontWeight: FontWeight.w700,
+                    color: textColor,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Regresa al paso 1 para seleccionar servicios de marketing',
                   style: TextStyle(
-                      fontSize: 12, color: textColor.withAlpha(150)),
+                    fontSize: 12,
+                    color: textColor.withAlpha(150),
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -1580,7 +1731,9 @@ class _NewQuotationViewState extends State<NewQuotationView> {
               child: NeuBox(
                 color: Color(svc.colorValue).withAlpha(15),
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 14),
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 child: Row(
                   children: [
                     Container(
@@ -1590,31 +1743,47 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                         color: Color(svc.colorValue).withAlpha(30),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Icon(svc.icon,
-                          color: Color(svc.colorValue), size: 18),
+                      child: Icon(
+                        svc.icon,
+                        color: Color(svc.colorValue),
+                        size: 18,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(svc.label,
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  color: textColor,
-                                  fontSize: 14)),
-                          Text(svc.description,
-                              style: TextStyle(
-                                  fontSize: 11,
-                                  color: textColor.withAlpha(140))),
+                          Text(
+                            svc.label,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: textColor == AppColors.white
+                                  ? AppColors.black
+                                  : AppColors.white,
+                              fontSize: 14,
+                            ),
+                          ),
+                          Text(
+                            svc.description,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: textColor == AppColors.white
+                                  ? AppColors.black
+                                  : AppColors.white.withAlpha(140),
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                    Text('\$${svcTotal.toStringAsFixed(2)}',
-                        style: TextStyle(
-                            color: Color(svc.colorValue),
-                            fontWeight: FontWeight.w800,
-                            fontSize: 14)),
+                    Text(
+                      '\$${svcTotal.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        color: Color(svc.colorValue),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1629,15 +1798,24 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                 const Icon(Icons.campaign, color: Color(0xFFE91E63), size: 22),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text('TOTAL MARKETING',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w800, color: textColor)),
+                  child: Text(
+                    'TOTAL MARKETING',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: textColor == AppColors.white
+                          ? AppColors.black
+                          : AppColors.white,
+                    ),
+                  ),
                 ),
-                Text('\$${_marketingTotal.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                        color: Color(0xFFE91E63),
-                        fontWeight: FontWeight.w800,
-                        fontSize: 18)),
+                Text(
+                  '\$${_marketingTotal.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    color: Color(0xFFE91E63),
+                    fontWeight: FontWeight.w800,
+                    fontSize: 18,
+                  ),
+                ),
               ],
             ),
           ),
@@ -1647,7 +1825,11 @@ class _NewQuotationViewState extends State<NewQuotationView> {
   }
 
   Widget _buildMktSkipStep(
-      String title, String message, IconData icon, Color textColor) {
+    String title,
+    String message,
+    IconData icon,
+    Color textColor,
+  ) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
       children: [
@@ -1660,16 +1842,16 @@ class _NewQuotationViewState extends State<NewQuotationView> {
               const SizedBox(height: 16),
               Text(
                 message,
-                style:
-                    TextStyle(color: textColor.withAlpha(120), fontSize: 14),
+                style: TextStyle(color: textColor.withAlpha(120), fontSize: 14),
               ),
               const SizedBox(height: 8),
               Text(
                 'Continúa al siguiente paso →',
                 style: TextStyle(
-                    color: AppColors.blue,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13),
+                  color: AppColors.blue,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
               ),
             ],
           ),
@@ -1711,11 +1893,7 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                     color: AppColors.blue.withAlpha(20),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    selectedIcon,
-                    color: AppColors.blue,
-                    size: 26,
-                  ),
+                  child: Icon(selectedIcon, color: AppColors.blue, size: 26),
                 ),
                 const SizedBox(width: 14),
               ],
@@ -1900,8 +2078,11 @@ class _NewQuotationViewState extends State<NewQuotationView> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.campaign_outlined,
-                        color: Color(0xFFE91E63), size: 20),
+                    const Icon(
+                      Icons.campaign_outlined,
+                      color: Color(0xFFE91E63),
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'Marketing Digital',
@@ -1924,16 +2105,15 @@ class _NewQuotationViewState extends State<NewQuotationView> {
                       svcTotal = _marketingConfig?.eventCoverageTotal ?? 0;
                       break;
                     case MarketingService.digitalAds:
-                      svcTotal = (_marketingConfig?.digitalAdsSetup ?? 0) +
+                      svcTotal =
+                          (_marketingConfig?.digitalAdsSetup ?? 0) +
                           (_marketingConfig?.digitalAdsMgmtMonthly ?? 0);
                       break;
                     case MarketingService.contentCreation:
-                      svcTotal =
-                          _marketingConfig?.contentCreationMonthly ?? 0;
+                      svcTotal = _marketingConfig?.contentCreationMonthly ?? 0;
                       break;
                     case MarketingService.emailMarketing:
-                      svcTotal =
-                          _marketingConfig?.emailMarketingMonthly ?? 0;
+                      svcTotal = _marketingConfig?.emailMarketingMonthly ?? 0;
                       break;
                   }
                   return _SummaryRow(
@@ -2343,7 +2523,7 @@ class _ServiceCard extends StatelessWidget {
 
     return NeuBox(
       color: selected
-          ? accentColor.withAlpha(30)
+          ? accentColor
           : (isDark ? AppColors.grey800 : AppColors.white),
       onTap: onTap,
       padding: const EdgeInsets.all(14),
@@ -2354,10 +2534,16 @@ class _ServiceCard extends StatelessWidget {
             width: 40,
             height: 30,
             decoration: BoxDecoration(
-              color: accentColor.withAlpha(30),
+              color: selected
+                  ? AppColors.white.withAlpha(30)
+                  : accentColor.withAlpha(30),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(type.icon, color: accentColor, size: 22),
+            child: Icon(
+              type.icon,
+              color: selected ? AppColors.white : accentColor,
+              size: 22,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -2365,7 +2551,7 @@ class _ServiceCard extends StatelessWidget {
             style: TextStyle(
               fontWeight: FontWeight.w800,
               fontSize: 13,
-              color: textColor,
+              color: selected ? AppColors.white : textColor,
             ),
             textAlign: TextAlign.center,
             maxLines: 1,
@@ -2375,7 +2561,9 @@ class _ServiceCard extends StatelessWidget {
             Text(
               '\$${type.basePrice.toStringAsFixed(0)}',
               style: TextStyle(
-                color: AppColors.blue,
+                color: selected
+                    ? AppColors.white.withAlpha(220)
+                    : AppColors.blue,
                 fontWeight: FontWeight.w700,
                 fontSize: 12,
               ),
@@ -2384,7 +2572,9 @@ class _ServiceCard extends StatelessWidget {
             Text(
               'Variable',
               style: TextStyle(
-                color: const Color(0xFFE91E63),
+                color: selected
+                    ? AppColors.white.withAlpha(220)
+                    : const Color(0xFFE91E63),
                 fontWeight: FontWeight.w700,
                 fontSize: 12,
               ),
@@ -2392,7 +2582,7 @@ class _ServiceCard extends StatelessWidget {
           if (selected)
             Padding(
               padding: const EdgeInsets.only(top: 2),
-              child: Icon(Icons.check_circle, color: accentColor, size: 18),
+              child: Icon(Icons.check_circle, color: AppColors.white, size: 18),
             ),
         ],
       ),
@@ -2424,10 +2614,11 @@ class _TierCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textColor = isDark ? AppColors.white : AppColors.black;
+    final selectedTextColor = AppColors.white;
 
     return NeuBox(
       color: selected
-          ? AppColors.blue.withAlpha(25)
+          ? AppColors.blue
           : (isDark ? AppColors.grey800 : AppColors.white),
       onTap: onTap,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -2437,12 +2628,14 @@ class _TierCard extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: (accentColor ?? AppColors.blue).withAlpha(25),
+              color: selected
+                  ? AppColors.white.withAlpha(30)
+                  : (accentColor ?? AppColors.blue).withAlpha(25),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
               icon,
-              color: selected ? AppColors.blue : textColor.withAlpha(180),
+              color: selected ? AppColors.white : textColor.withAlpha(180),
               size: 22,
             ),
           ),
@@ -2455,14 +2648,16 @@ class _TierCard extends StatelessWidget {
                   title,
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
-                    color: textColor,
+                    color: selected ? selectedTextColor : textColor,
                     fontSize: 15,
                   ),
                 ),
                 Text(
                   subtitle,
                   style: TextStyle(
-                    color: textColor.withAlpha(150),
+                    color: selected
+                        ? AppColors.white.withAlpha(200)
+                        : textColor.withAlpha(150),
                     fontSize: 12,
                   ),
                 ),
@@ -2472,7 +2667,7 @@ class _TierCard extends StatelessWidget {
           Text(
             price,
             style: TextStyle(
-              color: AppColors.blue,
+              color: selected ? AppColors.white : AppColors.blue,
               fontWeight: FontWeight.w800,
               fontSize: 14,
             ),
@@ -2511,10 +2706,10 @@ class _CheckCard extends StatelessWidget {
     final textColor = isDark ? AppColors.white : AppColors.black;
     final accent = accentColor ?? AppColors.blue;
 
+    final onAccent = AppColors.white;
+
     return NeuBox(
-      color: checked
-          ? accent.withAlpha(20)
-          : (isDark ? AppColors.grey800 : AppColors.white),
+      color: checked ? accent : (isDark ? AppColors.grey800 : AppColors.white),
       onTap: onTap,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
@@ -2523,23 +2718,21 @@ class _CheckCard extends StatelessWidget {
             width: 22,
             height: 22,
             decoration: BoxDecoration(
-              color: checked ? accent : Colors.transparent,
+              color: checked ? AppColors.white : Colors.transparent,
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
                 color: checked
-                    ? accent
+                    ? AppColors.white
                     : (isDark ? AppColors.white : AppColors.black),
                 width: 2,
               ),
             ),
-            child: checked
-                ? const Icon(Icons.check, size: 14, color: AppColors.white)
-                : null,
+            child: checked ? Icon(Icons.check, size: 14, color: accent) : null,
           ),
           const SizedBox(width: 14),
           Icon(
             icon,
-            color: checked ? accent : textColor.withAlpha(160),
+            color: checked ? onAccent : textColor.withAlpha(160),
             size: 20,
           ),
           const SizedBox(width: 10),
@@ -2552,7 +2745,7 @@ class _CheckCard extends StatelessWidget {
                         title,
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
-                          color: textColor,
+                          color: checked ? onAccent : textColor,
                           fontSize: 14,
                         ),
                       ),
@@ -2560,7 +2753,9 @@ class _CheckCard extends StatelessWidget {
                       Text(
                         subtitle,
                         style: TextStyle(
-                          color: accent.withAlpha(200),
+                          color: checked
+                              ? AppColors.white.withAlpha(200)
+                              : accent.withAlpha(200),
                           fontWeight: FontWeight.w500,
                           fontSize: 12,
                         ),
@@ -2571,7 +2766,7 @@ class _CheckCard extends StatelessWidget {
                     title,
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
-                      color: textColor,
+                      color: checked ? onAccent : textColor,
                       fontSize: 14,
                     ),
                   ),
@@ -2580,7 +2775,7 @@ class _CheckCard extends StatelessWidget {
             Text(
               subtitle,
               style: TextStyle(
-                color: accent,
+                color: checked ? AppColors.white.withAlpha(220) : accent,
                 fontWeight: FontWeight.w700,
                 fontSize: 13,
               ),
@@ -2707,7 +2902,11 @@ class _MktPricePreview extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.calculate_outlined, color: Color(0xFFE91E63), size: 16),
+          const Icon(
+            Icons.calculate_outlined,
+            color: Color(0xFFE91E63),
+            size: 16,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(

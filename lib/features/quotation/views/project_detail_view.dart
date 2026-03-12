@@ -297,7 +297,9 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
                       child: Text(
                         'Enviar por Correo',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: textColor == AppColors.white
+                              ? AppColors.black
+                              : AppColors.white,
                           fontWeight: FontWeight.w800,
                           fontSize: 15,
                         ),
@@ -867,8 +869,11 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
                       color: mktColor.withAlpha(20),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child:
-                        const Icon(Icons.campaign, color: mktColor, size: 24),
+                    child: const Icon(
+                      Icons.campaign,
+                      color: mktColor,
+                      size: 24,
+                    ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -928,8 +933,7 @@ class _ProjectDetailViewState extends State<ProjectDetailView> {
               ),
 
               // Social details
-              if (mkt.hasSocialMedia &&
-                  mkt.socialPlatformEnums.isNotEmpty) ...[
+              if (mkt.hasSocialMedia && mkt.socialPlatformEnums.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 _DetailRow(
                   icon: Icons.share_outlined,
