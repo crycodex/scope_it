@@ -1,8 +1,11 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'app/router.dart';
 import 'app/theme.dart';
 import 'database/database_helper.dart';
+import 'firebase_options.dart';
 import 'models/business_info.dart';
 import 'providers/settings_provider.dart';
 import 'providers/theme_provider.dart';
@@ -11,6 +14,10 @@ import 'services/pricing_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: '.env');
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   final db = DatabaseHelper.instance;
   await PricingService.instance.load();
   await MarketingPricingService.instance.load();

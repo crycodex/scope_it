@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "860389286543",
+    "project_id": "bwi2026",
+    "storage_bucket": "bwi2026.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:860389286543:android:0a9958c6ab59318769c6fa",
+        "android_client_info": {
+          "package_name": "com.crycode.scopeit"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyChqDHYcDHIaMH9cW_tWmmtdrqgIHJf2Yc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
