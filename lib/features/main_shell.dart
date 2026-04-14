@@ -61,6 +61,7 @@ class _MainShellState extends State<MainShell> {
               currentIndex: _currentIndex,
               onTap: _onTabTap,
               onAdd: () => context.go('/quotation'),
+              onAiAdd: () => context.go('/ai-quotation'),
             )
           else
             Positioned(
@@ -70,8 +71,8 @@ class _MainShellState extends State<MainShell> {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   const btnWidth = 50.0;
-                  const gap = 100.0;
-                  final tabBarWidth = constraints.maxWidth - btnWidth - gap;
+                  const gap = 116.0;
+                  final tabBarWidth = constraints.maxWidth - (btnWidth * 2) - 8 - gap;
 
                   return Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -97,6 +98,14 @@ class _MainShellState extends State<MainShell> {
                       SizedBox(
                         width: btnWidth,
                         child: CNButton.icon(
+                          icon: const CNSymbol('sparkles'),
+                          onPressed: () => context.go('/ai-quotation'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      SizedBox(
+                        width: btnWidth,
+                        child: CNButton.icon(
                           icon: const CNSymbol('plus'),
                           onPressed: () => context.go('/quotation'),
                         ),
@@ -119,11 +128,13 @@ class _AndroidNavBar extends StatelessWidget {
     required this.currentIndex,
     required this.onTap,
     required this.onAdd,
+    required this.onAiAdd,
   });
 
   final int currentIndex;
   final ValueChanged<int> onTap;
   final VoidCallback onAdd;
+  final VoidCallback onAiAdd;
 
   static const _items = [
     (icon: Icons.home_rounded, label: 'Inicio'),
@@ -194,11 +205,33 @@ class _AndroidNavBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
+          // FAB IA (sparkle)
+          GestureDetector(
+            onTap: onAiAdd,
+            child: Container(
+              width: 52,
+              height: 60,
+              decoration: BoxDecoration(
+                color: AppColors.yellow,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: border, width: AppColors.borderWidth),
+                boxShadow: [
+                  BoxShadow(
+                    color: border,
+                    offset: const Offset(3, 3),
+                    blurRadius: 0,
+                  ),
+                ],
+              ),
+              child: const Icon(Icons.auto_awesome_rounded, color: AppColors.black, size: 22),
+            ),
+          ),
+          const SizedBox(width: 8),
           // FAB +
           GestureDetector(
             onTap: onAdd,
             child: Container(
-              width: 60,
+              width: 52,
               height: 60,
               decoration: BoxDecoration(
                 color: AppColors.blue,
@@ -212,7 +245,7 @@ class _AndroidNavBar extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Icon(Icons.add_rounded, color: AppColors.white, size: 28),
+              child: const Icon(Icons.add_rounded, color: AppColors.white, size: 26),
             ),
           ),
         ],

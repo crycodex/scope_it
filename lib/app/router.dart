@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../features/main_shell.dart';
+import '../features/quotation/views/ai_quotation_view.dart';
 import '../features/quotation/views/new_quotation_view.dart';
 import '../features/quotation/views/project_detail_view.dart';
 import '../features/settings/views/settings_view.dart';
@@ -13,6 +14,14 @@ final appRouter = GoRouter(
       name: 'home',
       pageBuilder: (context, state) => const NoTransitionPage(
         child: MainShell(),
+      ),
+    ),
+    GoRoute(
+      path: '/ai-quotation',
+      name: 'aiQuotation',
+      pageBuilder: (context, state) => _slideRight(
+        state: state,
+        child: const AiQuotationView(),
       ),
     ),
     GoRoute(
